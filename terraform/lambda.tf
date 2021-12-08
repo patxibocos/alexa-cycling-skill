@@ -1,50 +1,50 @@
 resource "aws_lambda_function" "alexa_cycling_lambda" {
-  function_name = "alexa_cycling_lambda"
-  role = aws_iam_role.alexa_cycling_role.arn
-  runtime = "go1.x"
-  filename = "alexa_cycling_lambda.zip"
+  function_name    = "alexa_cycling_lambda"
+  role             = aws_iam_role.alexa_cycling_role.arn
+  runtime          = "go1.x"
+  filename         = "alexa_cycling_lambda.zip"
   source_code_hash = filebase64sha256("alexa_cycling_lambda.zip")
-  handler = "main"
-  publish = true
-  layers = ["arn:aws:lambda:eu-west-3:493207061005:layer:AWS-AppConfig-Extension:46"]
+  handler          = "main"
+  publish          = true
+  layers           = ["arn:aws:lambda:eu-west-3:493207061005:layer:AWS-AppConfig-Extension:46"]
 }
 
 resource "aws_lambda_function" "appconfig_publisher_lambda" {
-  function_name = "appconfig_publisher_lambda"
-  role = aws_iam_role.appconfig_publisher_role.arn
-  runtime = "go1.x"
-  filename = "appconfig_publisher_lambda.zip"
+  function_name    = "appconfig_publisher_lambda"
+  role             = aws_iam_role.appconfig_publisher_role.arn
+  runtime          = "go1.x"
+  filename         = "appconfig_publisher_lambda.zip"
   source_code_hash = filebase64sha256("appconfig_publisher_lambda.zip")
-  handler = "main"
-  publish = true
+  handler          = "main"
+  publish          = true
 }
 
 resource "aws_iam_role" "alexa_cycling_role" {
-    name = "alexa_cycling_role"
-    assume_role_policy = jsonencode({
-        Version = "2012-10-17"
-        Statement = [{
-          Action = "sts:AssumeRole"
-          Effect = "Allow"
-          Principal = {
-            Service = "lambda.amazonaws.com"
-          }
-        }]
-      })
+  name = "alexa_cycling_role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = {
+        Service = "lambda.amazonaws.com"
+      }
+    }]
+  })
 }
 
 resource "aws_iam_role" "appconfig_publisher_role" {
-    name = "appconfig_publisher_role"
-    assume_role_policy = jsonencode({
-        Version = "2012-10-17"
-        Statement = [{
-          Action = "sts:AssumeRole"
-          Effect = "Allow"
-          Principal = {
-            Service = "lambda.amazonaws.com"
-          }
-        }]
-      })
+  name = "appconfig_publisher_role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = {
+        Service = "lambda.amazonaws.com"
+      }
+    }]
+  })
 }
 
 resource "aws_iam_policy" "appconfig_get_configuration_policy" {
@@ -81,17 +81,17 @@ resource "aws_iam_role_policy_attachment" "another-policy" {
 }
 
 resource "aws_iam_role" "alexa_cycling_appconfig_role" {
-    name = "alexa_cycling_appconfig_role"
-    assume_role_policy = jsonencode({
-        Version = "2012-10-17"
-        Statement = [{
-          Action = "sts:AssumeRole"
-          Effect = "Allow"
-          Principal = {
-            Service = "appconfig.amazonaws.com"
-          }
-        }]
-      })
+  name = "alexa_cycling_appconfig_role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = {
+        Service = "appconfig.amazonaws.com"
+      }
+    }]
+  })
 }
 
 resource "aws_iam_policy" "start_deployment_policy" {
@@ -162,12 +162,12 @@ resource "aws_iam_role_policy_attachment" "test-attach2" {
 }
 
 resource "aws_iam_role_policy_attachment" "another-attach" {
-  role = aws_iam_role.appconfig_publisher_role.name
+  role       = aws_iam_role.appconfig_publisher_role.name
   policy_arn = aws_iam_policy.read_s3_policy.arn
 }
 
 resource "aws_iam_role_policy_attachment" "another-attach2" {
-  role = aws_iam_role.appconfig_publisher_role.name
+  role       = aws_iam_role.appconfig_publisher_role.name
   policy_arn = aws_iam_policy.start_deployment_policy.arn
 }
 
@@ -177,10 +177,10 @@ resource "aws_appconfig_application" "alexa_cycling_appconfig_application" {
 }
 
 resource "aws_appconfig_configuration_profile" "alexa_cycling_appconfig_profile" {
-  application_id = aws_appconfig_application.alexa_cycling_appconfig_application.id
-  description    = "alexa_cycling_appconfig_profile"
-  name           = "alexa_cycling_appconfig_profile"
-  location_uri   = "s3://alexacycling/races.data"
+  application_id     = aws_appconfig_application.alexa_cycling_appconfig_application.id
+  description        = "alexa_cycling_appconfig_profile"
+  name               = "alexa_cycling_appconfig_profile"
+  location_uri       = "s3://alexacycling/races.data"
   retrieval_role_arn = aws_iam_role.alexa_cycling_appconfig_role.arn
 }
 
@@ -220,7 +220,7 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
 output "lambda_version" {
   value = aws_lambda_function.alexa_cycling_lambda.version
 }
- 
+
 output "lambda_name" {
   value = aws_lambda_function.alexa_cycling_lambda.function_name
 }
