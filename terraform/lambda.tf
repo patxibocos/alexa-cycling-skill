@@ -229,10 +229,18 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
   depends_on = [aws_lambda_permission.allow_bucket]
 }
 
-output "lambda_version" {
+output "alexa_cycling_lambda_version" {
   value = aws_lambda_function.alexa_cycling_lambda.version
 }
 
-output "lambda_name" {
+output "alexa_cycling_lambda_name" {
   value = aws_lambda_function.alexa_cycling_lambda.function_name
+}
+
+output "appconfig_publisher_lambda_version" {
+  value = aws_lambda_function.appconfig_publisher_lambda.version
+}
+
+output "appconfig_publisher_lambda_name" {
+  value = aws_lambda_function.appconfig_publisher_lambda.function_name
 }
