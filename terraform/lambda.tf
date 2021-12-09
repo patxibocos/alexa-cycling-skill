@@ -1,9 +1,21 @@
+data "archive_file" "alexa_cycling_lambda_code" {
+  type        = "zip"
+  source_file = "alexa-skill-lambda"
+  output_path = "alexa-skill-lambda.zip"
+}
+
+data "archive_file" "appconfig_publisher_lambda_code" {
+  type        = "zip"
+  source_file = "appconfig-publisher-lambda"
+  output_path = "appconfig-publisher-lambda.zip"
+}
+
 resource "aws_lambda_function" "alexa_cycling_lambda" {
   function_name    = "alexa_cycling_lambda"
   role             = aws_iam_role.alexa_cycling_role.arn
   runtime          = "go1.x"
-  filename         = "alexa-skill-lambda.zip"
-  source_code_hash = filebase64sha256("alexa-skill-lambda.zip")
+  filename         = data.archive_file.alexa_cycling_lambda_code.output_path
+  source_code_hash = data.archive_file.alexa_cycling_lambda_code.output_base64sha256
   handler          = "alexa-skill-lambda"
   publish          = true
   layers           = ["arn:aws:lambda:eu-west-3:493207061005:layer:AWS-AppConfig-Extension:46"]
@@ -13,8 +25,8 @@ resource "aws_lambda_function" "appconfig_publisher_lambda" {
   function_name    = "appconfig_publisher_lambda"
   role             = aws_iam_role.appconfig_publisher_role.arn
   runtime          = "go1.x"
-  filename         = "appconfig-publisher-lambda.zip"
-  source_code_hash = filebase64sha256("appconfig-publisher-lambda.zip")
+  filename         = data.archive_file.appconfig_publisher_lambda_code.output_path
+  source_code_hash = data.archive_file.appconfig_publisher_lambda_code.output_base64sha256
   handler          = "appconfig-publisher-lambda"
   publish          = true
 }
