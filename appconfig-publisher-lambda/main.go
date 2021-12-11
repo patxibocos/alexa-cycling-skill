@@ -12,7 +12,7 @@ func HandleRequest(ctx context.Context) (string, error) {
 	mySession := session.Must(session.NewSession())
 	s3Instance := s3.New(mySession)
 	bucket := "alexacycling"
-	key := "races.data"
+	key := "cycling.data"
 	headOutput, err := s3Instance.HeadObject(&s3.HeadObjectInput{
 		Bucket: &bucket,
 		Key:    &key,
@@ -21,11 +21,11 @@ func HandleRequest(ctx context.Context) (string, error) {
 		return "Failed", err
 	}
 	svc := appconfig.New(mySession)
-	applicationId := "671yalh"
-	configurationProfileId := "gygdoos"
+	applicationId := "lev3aq5"
+	configurationProfileId := "izxp027"
 	configurationVersion := headOutput.VersionId
 	deploymentStrategyId := "AppConfig.AllAtOnce"
-	environmentId := "660h3vk"
+	environmentId := "5uih7f1"
 	_, err = svc.StartDeployment(&appconfig.StartDeploymentInput{
 		ApplicationId:          &applicationId,
 		ConfigurationProfileId: &configurationProfileId,

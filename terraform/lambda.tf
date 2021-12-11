@@ -143,7 +143,7 @@ resource "aws_iam_policy" "read_s3_policy" {
         "s3:GetObjectVersion"
       ],
       "Resource": [
-        "arn:aws:s3:::alexacycling/races.data"
+        "arn:aws:s3:::alexacycling/cycling.data"
       ]
     },
     {
@@ -192,7 +192,7 @@ resource "aws_appconfig_configuration_profile" "alexa_cycling_appconfig_profile"
   application_id     = aws_appconfig_application.alexa_cycling_appconfig_application.id
   description        = "alexa_cycling_appconfig_profile"
   name               = "alexa_cycling_appconfig_profile"
-  location_uri       = "s3://alexacycling/races.data"
+  location_uri       = "s3://alexacycling/cycling.data"
   retrieval_role_arn = aws_iam_role.alexa_cycling_appconfig_role.arn
 }
 
