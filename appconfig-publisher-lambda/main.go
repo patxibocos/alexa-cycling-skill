@@ -6,6 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/appconfig"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"os"
 )
 
 func HandleRequest(ctx context.Context) (string, error) {
@@ -21,11 +22,11 @@ func HandleRequest(ctx context.Context) (string, error) {
 		return "Failed", err
 	}
 	svc := appconfig.New(mySession)
-	applicationId := "lev3aq5"
-	configurationProfileId := "izxp027"
+	applicationId := os.Getenv("AWS_APPCONFIG_APPLICATION_ID")
+	configurationProfileId := os.Getenv("AWS_APPCONFIG_CONFIGURATION_PROFILE_ID")
 	configurationVersion := headOutput.VersionId
 	deploymentStrategyId := "AppConfig.AllAtOnce"
-	environmentId := "5uih7f1"
+	environmentId := os.Getenv("AWS_APPCONFIG_ENVIRONMENT_ID")
 	_, err = svc.StartDeployment(&appconfig.StartDeploymentInput{
 		ApplicationId:          &applicationId,
 		ConfigurationProfileId: &configurationProfileId,

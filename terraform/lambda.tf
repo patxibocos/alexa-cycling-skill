@@ -21,7 +21,7 @@ resource "aws_lambda_function" "alexa_cycling_lambda" {
   layers           = ["arn:aws:lambda:eu-west-3:493207061005:layer:AWS-AppConfig-Extension:46"]
   environment {
     variables = {
-      AWS_APPCONFIG_URL = "http://localhost:2772/applications/alexa_cycling_appconfig/environments/alexa_cycling_appconfig_environment/configurations/alexa_cycling_appconfig_profile"
+      AWS_APPCONFIG_URL = "http://localhost:2772/applications/${aws_appconfig_application.alexa_cycling_appconfig_application.name}/environments/${aws_appconfig_environment.alexa_cycling_appconfig_environment.name}/configurations/${aws_appconfig_configuration_profile.alexa_cycling_appconfig_profile.name}"
     }
   }
 }
@@ -34,6 +34,13 @@ resource "aws_lambda_function" "appconfig_publisher_lambda" {
   source_code_hash = data.archive_file.appconfig_publisher_lambda_code.output_base64sha256
   handler          = "appconfig-publisher-lambda"
   publish          = true
+  environment {
+    variables = {
+      AWS_APPCONFIG_APPLICATION_ID           = aws_appconfig_application.alexa_cycling_appconfig_application.id
+      AWS_APPCONFIG_CONFIGURATION_PROFILE_ID = aws_appconfig_configuration_profile.alexa_cycling_appconfig_profile.configuration_profile_id
+      AWS_APPCONFIG_ENVIRONMENT_ID           = aws_appconfig_environment.alexa_cycling_appconfig_environment.environment_id
+    }
+  }
 }
 
 resource "aws_iam_role" "alexa_cycling_role" {
