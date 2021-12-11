@@ -44,6 +44,8 @@ resource "aws_lambda_function" "appconfig_publisher_lambda" {
       AWS_APPCONFIG_APPLICATION_ID           = aws_appconfig_application.alexa_cycling_appconfig_application.id
       AWS_APPCONFIG_CONFIGURATION_PROFILE_ID = aws_appconfig_configuration_profile.alexa_cycling_appconfig_profile.configuration_profile_id
       AWS_APPCONFIG_ENVIRONMENT_ID           = aws_appconfig_environment.alexa_cycling_appconfig_environment.environment_id
+      AWS_S3_BUCKET                          = local.s3_bucket
+      AWS_S3_OBJECT_KEY                      = local.s3_object_key
     }
   }
 }

@@ -12,8 +12,8 @@ import (
 func HandleRequest(ctx context.Context) (string, error) {
 	mySession := session.Must(session.NewSession())
 	s3Instance := s3.New(mySession)
-	bucket := "alexacycling"
-	key := "cycling.data"
+	bucket := os.Getenv("AWS_S3_BUCKET")
+	key := os.Getenv("AWS_S3_OBJECT_KEY")
 	headOutput, err := s3Instance.HeadObject(&s3.HeadObjectInput{
 		Bucket: &bucket,
 		Key:    &key,
