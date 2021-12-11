@@ -1,3 +1,8 @@
+locals {
+  s3_bucket     = "alexacycling"
+  s3_object_key = "cycling.data"
+}
+
 data "archive_file" "alexa_cycling_lambda_code" {
   type        = "zip"
   source_file = "alexa-skill-lambda"
@@ -155,7 +160,7 @@ resource "aws_iam_policy" "read_s3_policy" {
         "s3:GetObjectVersion"
       ],
       "Resource": [
-        "arn:aws:s3:::alexacycling/cycling.data"
+        "arn:aws:s3:::${local.s3_bucket}/${local.s3_object_key}"
       ]
     },
     {
@@ -167,7 +172,7 @@ resource "aws_iam_policy" "read_s3_policy" {
         "s3:ListBucket"
       ],
       "Resource": [
-        "arn:aws:s3:::alexacycling"
+        "arn:aws:s3:::${local.s3_bucket}"
       ]
     },
     {
@@ -204,7 +209,7 @@ resource "aws_appconfig_configuration_profile" "alexa_cycling_appconfig_profile"
   application_id     = aws_appconfig_application.alexa_cycling_appconfig_application.id
   description        = "alexa_cycling_appconfig_profile"
   name               = "alexa_cycling_appconfig_profile"
-  location_uri       = "s3://alexacycling/cycling.data"
+  location_uri       = "s3://${local.s3_bucket}/${local.s3_object_key}"
   retrieval_role_arn = aws_iam_role.alexa_cycling_appconfig_role.arn
 }
 
@@ -215,7 +220,7 @@ resource "aws_appconfig_environment" "alexa_cycling_appconfig_environment" {
 }
 
 resource "aws_s3_bucket" "alexa_cycling_s3_bucket" {
-  bucket = "alexacycling"
+  bucket = local.s3_bucket
   acl    = "private"
   versioning {
     enabled = true
