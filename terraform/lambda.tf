@@ -19,6 +19,11 @@ resource "aws_lambda_function" "alexa_cycling_lambda" {
   handler          = "alexa-skill-lambda"
   publish          = true
   layers           = ["arn:aws:lambda:eu-west-3:493207061005:layer:AWS-AppConfig-Extension:46"]
+  environment {
+    variables = {
+      AWS_APPCONFIG_URL = "http://localhost:2772/applications/alexa_cycling_appconfig/environments/alexa_cycling_appconfig_environment/configurations/alexa_cycling_appconfig_profile"
+    }
+  }
 }
 
 resource "aws_lambda_function" "appconfig_publisher_lambda" {
