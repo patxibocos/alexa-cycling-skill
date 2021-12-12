@@ -1,8 +1,7 @@
-locals {
-  s3_bucket      = "alexacycling"
-  s3_object_key  = "cycling.data"
-  alexa_skill_id = "amzn1.ask.skill.f80c8481-c030-48e4-a019-b3f78a124e00"
-}
+variable "AWS_REGION" {}
+variable "AWS_S3_BUCKET" {}
+variable "AWS_S3_OBJECT_KEY" {}
+variable "ALEXA_SKIL_ID" {}
 
 data "archive_file" "alexa_cycling_lambda_code" {
   type        = "zip"
@@ -24,7 +23,7 @@ resource "aws_lambda_function" "alexa_cycling_lambda" {
   source_code_hash = data.archive_file.alexa_cycling_lambda_code.output_base64sha256
   handler          = "alexa-skill-lambda"
   publish          = true
-  layers           = ["arn:aws:lambda:eu-west-3:493207061005:layer:AWS-AppConfig-Extension:46"]
+  layers           = ["arn:aws:lambda:${var.AWS_REGION}:493207061005:layer:AWS-AppConfig-Extension:46"]
   environment {
     variables = {
       AWS_APPCONFIG_URL = "http://localhost:2772/applications/${aws_appconfig_application.alexa_cycling_appconfig_application.name}/environments/${aws_appconfig_environment.alexa_cycling_appconfig_environment.name}/configurations/${aws_appconfig_configuration_profile.alexa_cycling_appconfig_profile.name}"
@@ -45,8 +44,8 @@ resource "aws_lambda_function" "appconfig_publisher_lambda" {
       AWS_APPCONFIG_APPLICATION_ID           = aws_appconfig_application.alexa_cycling_appconfig_application.id
       AWS_APPCONFIG_CONFIGURATION_PROFILE_ID = aws_appconfig_configuration_profile.alexa_cycling_appconfig_profile.configuration_profile_id
       AWS_APPCONFIG_ENVIRONMENT_ID           = aws_appconfig_environment.alexa_cycling_appconfig_environment.environment_id
-      AWS_S3_BUCKET                          = local.s3_bucket
-      AWS_S3_OBJECT_KEY                      = local.s3_object_key
+      AWS_S3_BUCKET                          = var.AWS_S3_BUCKET
+      AWS_S3_OBJECT_KEY                      = var.AWS_S3_OBJECT_KEY
     }
   }
 }
@@ -90,7 +89,7 @@ resource "aws_iam_policy" "appconfig_get_configuration_policy" {
     {
       "Action": "appconfig:GetConfiguration",
       "Effect": "Allow",
-      "Resource": "arn:aws:appconfig:eu-west-3:654448679164:*"
+      "Resource": "arn:aws:appconfig:${var.AWS_REGION}:654448679164:*"
     }
   ]
 }
@@ -163,7 +162,7 @@ resource "aws_iam_policy" "read_s3_policy" {
         "s3:GetObjectVersion"
       ],
       "Resource": [
-        "arn:aws:s3:::${local.s3_bucket}/${local.s3_object_key}"
+        "arn:aws:s3:::${var.AWS_S3_BUCKET}/${var.AWS_S3_OBJECT_KEY}"
       ]
     },
     {
@@ -175,7 +174,7 @@ resource "aws_iam_policy" "read_s3_policy" {
         "s3:ListBucket"
       ],
       "Resource": [
-        "arn:aws:s3:::${local.s3_bucket}"
+        "arn:aws:s3:::${var.AWS_S3_BUCKET}"
       ]
     },
     {
@@ -212,7 +211,7 @@ resource "aws_appconfig_configuration_profile" "alexa_cycling_appconfig_profile"
   application_id     = aws_appconfig_application.alexa_cycling_appconfig_application.id
   description        = "alexa_cycling_appconfig_profile"
   name               = "alexa_cycling_appconfig_profile"
-  location_uri       = "s3://${local.s3_bucket}/${local.s3_object_key}"
+  location_uri       = "s3://${var.AWS_S3_BUCKET}/${var.AWS_S3_OBJECT_KEY}"
   retrieval_role_arn = aws_iam_role.alexa_cycling_appconfig_role.arn
 }
 
@@ -223,7 +222,7 @@ resource "aws_appconfig_environment" "alexa_cycling_appconfig_environment" {
 }
 
 resource "aws_s3_bucket" "alexa_cycling_s3_bucket" {
-  bucket = local.s3_bucket
+  bucket = var.AWS_S3_BUCKET
   acl    = "private"
   versioning {
     enabled = true
@@ -243,7 +242,7 @@ resource "aws_lambda_permission" "allow_alexa_skill" {
   action             = "lambda:InvokeFunction"
   function_name      = aws_lambda_function.alexa_cycling_lambda.arn
   principal          = "alexa-appkit.amazon.com"
-  event_source_token = local.alexa_skill_id
+  event_source_token = var.ALEXA_SKIL_ID
 }
 
 resource "aws_s3_bucket_notification" "bucket_notification" {
