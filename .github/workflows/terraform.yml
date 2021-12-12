@@ -50,6 +50,16 @@ jobs:
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
         terraform_wrapper: false
 
+    - name: Setup Terraform variables
+      working-directory: ./terraform
+      run: |-
+        cat > pipeline.auto.tfvars <<EOF
+        AWS_REGION        = "${{ secrets.AWS_REGION }}"
+        AWS_S3_BUCKET     = "${{ secrets.AWS_S3_BUCKET }}"
+        AWS_S3_OBJECT_KEY = "${{ secrets.AWS_S3_OBJECT_KEY }}"
+        ALEXA_SKILL_ID    = "${{ secrets.ALEXA_SKILL_ID }}"
+        EOF
+
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
       run: terraform init

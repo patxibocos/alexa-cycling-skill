@@ -1,7 +1,7 @@
 variable "AWS_REGION" {}
 variable "AWS_S3_BUCKET" {}
 variable "AWS_S3_OBJECT_KEY" {}
-variable "ALEXA_SKIL_ID" {}
+variable "ALEXA_SKILL_ID" {}
 
 data "archive_file" "alexa_cycling_lambda_code" {
   type        = "zip"
@@ -242,7 +242,7 @@ resource "aws_lambda_permission" "allow_alexa_skill" {
   action             = "lambda:InvokeFunction"
   function_name      = aws_lambda_function.alexa_cycling_lambda.arn
   principal          = "alexa-appkit.amazon.com"
-  event_source_token = var.ALEXA_SKIL_ID
+  event_source_token = var.ALEXA_SKILL_ID
 }
 
 resource "aws_s3_bucket_notification" "bucket_notification" {
