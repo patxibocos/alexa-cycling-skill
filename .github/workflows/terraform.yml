@@ -36,11 +36,11 @@ jobs:
         go-version: '1.17'
 
     - name: Build alexa-skill-lambda
-      run: GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o ../terraform/alexa-skill-lambda main.go
+      run: GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-s -w" -o ../terraform/alexa-skill-lambda main.go
       working-directory: ./alexa-skill-lambda
 
     - name: Build appconfig-publisher-lambda
-      run: GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o ../terraform/appconfig-publisher-lambda main.go
+      run: GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-s -w" -o ../terraform/appconfig-publisher-lambda main.go
       working-directory: ./appconfig-publisher-lambda
 
     # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
