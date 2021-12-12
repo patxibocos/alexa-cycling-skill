@@ -1,6 +1,7 @@
 locals {
-  s3_bucket     = "alexacycling"
-  s3_object_key = "cycling.data"
+  s3_bucket      = "alexacycling"
+  s3_object_key  = "cycling.data"
+  alexa_skill_id = "amzn1.ask.skill.f80c8481-c030-48e4-a019-b3f78a124e00"
 }
 
 data "archive_file" "alexa_cycling_lambda_code" {
@@ -235,6 +236,14 @@ resource "aws_lambda_permission" "allow_bucket" {
   function_name = aws_lambda_function.appconfig_publisher_lambda.arn
   principal     = "s3.amazonaws.com"
   source_arn    = aws_s3_bucket.alexa_cycling_s3_bucket.arn
+}
+
+resource "aws_lambda_permission" "allow_alexa_skill" {
+  statement_id       = "AllowExecutionFromAlexa"
+  action             = "lambda:InvokeFunction"
+  function_name      = aws_lambda_function.alexa_cycling_lambda.arn
+  principal          = "alexa-appkit.amazon.com"
+  event_source_token = local.alexa_skill_id
 }
 
 resource "aws_s3_bucket_notification" "bucket_notification" {
