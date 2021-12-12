@@ -43,6 +43,14 @@ jobs:
       run: GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-s -w" -o ../terraform/appconfig-publisher-lambda main.go
       working-directory: ./appconfig-publisher-lambda
 
+    - name: UPX Go executables
+      uses: crazy-max/ghaction-upx@v1
+      with:
+        version: latest
+        files: |
+          ./terraform/alexa-skill-lambda
+          ./terraform/appconfig-publisher-lambda
+
     # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
