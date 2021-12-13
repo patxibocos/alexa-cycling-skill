@@ -39,18 +39,6 @@ jobs:
       run: GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-s -w" -o ../terraform/alexa-skill-lambda main.go
       working-directory: ./alexa-skill-lambda
 
-    - name: Build appconfig-publisher-lambda
-      run: GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-s -w" -o ../terraform/appconfig-publisher-lambda main.go
-      working-directory: ./appconfig-publisher-lambda
-
-    - name: UPX Go executables
-      uses: crazy-max/ghaction-upx@v1
-      with:
-        version: latest
-        files: |
-          ./terraform/alexa-skill-lambda
-          ./terraform/appconfig-publisher-lambda
-
     # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
@@ -62,7 +50,6 @@ jobs:
       working-directory: ./terraform
       run: |-
         cat > pipeline.auto.tfvars <<EOF
-        AWS_REGION        = "${{ secrets.AWS_REGION }}"
         AWS_S3_BUCKET     = "${{ secrets.AWS_S3_BUCKET }}"
         AWS_S3_OBJECT_KEY = "${{ secrets.AWS_S3_OBJECT_KEY }}"
         ALEXA_SKILL_ID    = "${{ secrets.ALEXA_SKILL_ID }}"
