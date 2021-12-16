@@ -9,28 +9,28 @@ type Request struct {
 
 type Response struct {
 	Version           string                 `json:"version"`
-	SessionAttributes map[string]interface{} `json:"sessionAttributes"`
+	SessionAttributes map[string]interface{} `json:"sessionAttributes,omitempty"`
 	Body              ResBody                `json:"response"`
 }
 
 type ResBody struct {
-	OutputSpeech     *OutputSpeech `json:"outputSpeech"`
-	Card             *Card         `json:"card"`
+	OutputSpeech     *OutputSpeech `json:"outputSpeech,omitempty"`
+	Card             *Card         `json:"card,omitempty"`
 	ShouldEndSession bool          `json:"shouldEndSession"`
 }
 
 type Card struct {
-	Type    string `json:"type"`
-	Title   string `json:"title"`
-	Content string `json:"content"`
-	Text    string `json:"text"`
+	Type    string `json:"type,omitempty"`
+	Title   string `json:"title,omitempty"`
+	Content string `json:"content,omitempty"`
+	Text    string `json:"text,omitempty"`
 }
 
 type OutputSpeech struct {
-	Type         string `json:"type"`
-	Text         string `json:"text"`
-	SSML         string `json:"ssml"`
-	PlayBehavior string `json:"playBehavior"`
+	Type         string `json:"type,omitempty"`
+	Text         string `json:"text,omitempty"`
+	SSML         string `json:"ssml,omitempty"`
+	PlayBehavior string `json:"playBehavior,omitempty"`
 }
 
 type Session struct {
@@ -42,7 +42,7 @@ type Session struct {
 	} `json:"application"`
 	User struct {
 		UserID      string `json:"userId"`
-		AccessToken string `json:"accessToken"`
+		AccessToken string `json:"accessToken,omitempty"`
 	} `json:"user"`
 }
 
@@ -51,9 +51,9 @@ type ReqBody struct {
 	RequestID   string `json:"requestId"`
 	Timestamp   string `json:"timestamp"`
 	Locale      string `json:"locale"`
-	Intent      Intent `json:"intent"`
-	Reason      string `json:"reason"`
-	DialogState string `json:"dialogState"`
+	Intent      Intent `json:"intent,omitempty"`
+	Reason      string `json:"reason,omitempty"`
+	DialogState string `json:"dialogState,omitempty"`
 	Error       Error  `json:"error"`
 }
 
@@ -67,18 +67,18 @@ type Context struct {
 		ApiAccessToken string `json:"apiAccessToken"`
 		ApiEndpoint    string `json:"apiEndpoint"`
 		Device         struct {
-			DeviceID string `json:"deviceId"`
-		} `json:"device"`
+			DeviceID string `json:"deviceId,omitempty"`
+		} `json:"device,omitempty"`
 		Application struct {
-			ApplicationID string `json:"applicationId"`
-		} `json:"application"`
-	} `json:"system"`
+			ApplicationID string `json:"applicationId,omitempty"`
+		} `json:"application,omitempty"`
+	} `json:"System,omitempty"`
 }
 
 type Intent struct {
-	Name               string          `json:"name"`
-	ConfirmationStatus string          `json:"confirmationStatus"`
-	Slots              map[string]Slot `json:"slots"`
+	Name               string          `json:"name,omitempty"`
+	ConfirmationStatus string          `json:"confirmationStatus,omitempty"`
+	Slots              map[string]Slot `json:"slots,omitempty"`
 }
 
 type Slot struct {

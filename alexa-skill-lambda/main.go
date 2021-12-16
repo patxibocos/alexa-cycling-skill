@@ -12,6 +12,8 @@ import (
 	"google.golang.org/protobuf/proto"
 	"io/ioutil"
 	"os"
+	"strings"
+	"time"
 )
 
 var s3Client *s3.S3
@@ -27,7 +29,7 @@ func getS3Client() *s3.S3 {
 func IntentDispatcher(request alexa.Request, cyclingData *pcsscraper.CyclingData) alexa.Response {
 	if request.Body.Intent.Name == "RaceResult" {
 		raceNameSlot := request.Body.Intent.Slots["raceName"]
-		raceId := raceNameSlot.SlotValue.Resolutions.ResolutionsPerAuthority[0].Values[0].Value.ID
+		raceId := raceNameSlot.Resolutions.ResolutionsPerAuthority[0].Values[0].Value.ID
 		var race *pcsscraper.Race
 		for _, r := range cyclingData.Races {
 			if r.Id == raceId {
@@ -37,12 +39,19 @@ func IntentDispatcher(request alexa.Request, cyclingData *pcsscraper.CyclingData
 		raceResult := cycling.GetRaceResult(race, cyclingData.Riders)
 		message := ""
 		switch ri := raceResult.(type) {
-		case *cycling.PastRace:
-			message = fmt.Sprintf("Winner was %s %s", ri.GcTop3[0].FirstName, ri.GcTop3[0].LastName)
+		case *cycling.PastRace: // We will have a mapping from race id to speakable race name (only in Spanish)
+			message = fmt.Sprintf(
+				"%s terminó el %s. El ganador fue %s, el segundo %s y tercero %s",
+				pcsscraper.RaceName[race.Id],
+				formattedDate(race.EndDate.AsTime()),
+				cycling.RiderFullName(ri.GcTop3[0]),
+				cycling.RiderFullName(ri.GcTop3[1]),
+				cycling.RiderFullName(ri.GcTop3[2]),
+			)
 		case *cycling.FutureRace:
-			message = fmt.Sprintf("Race %s happens on %s", race.Name, race.StartDate.AsTime().Format("02-01-2006"))
+			message = fmt.Sprintf("%s no empieza hasta el %s", pcsscraper.RaceName[race.Id], formattedDate(race.StartDate.AsTime()))
 		case *cycling.RestDayStage:
-			message = "RestDayStage"
+			message = fmt.Sprintf("Hoy ha habido día de descanso en %s", pcsscraper.RaceName[race.Id])
 		case *cycling.SingleDayRaceWithResults:
 			message = "SingleDayRaceWithResults"
 		case *cycling.SingleDayRaceWithoutResults:
@@ -53,14 +62,43 @@ func IntentDispatcher(request alexa.Request, cyclingData *pcsscraper.CyclingData
 			message = "MultiStageRaceWithoutResults"
 		}
 		return alexa.Response{
+			Version: "1.0",
 			Body: alexa.ResBody{
 				OutputSpeech: &alexa.OutputSpeech{
+					Type: "PlainText",
 					Text: message,
 				},
+				ShouldEndSession: true,
 			},
 		}
 	}
-	return alexa.Response{}
+	return alexa.Response{
+		Version: "1.0",
+		Body: alexa.ResBody{
+			OutputSpeech: &alexa.OutputSpeech{
+				Type: "PlainText",
+				Text: "Nothing",
+			},
+			ShouldEndSession: true,
+		},
+	}
+}
+
+func formattedDate(time time.Time) string {
+	r := strings.NewReplacer(
+		"January", "Enero",
+		"February", "Febrero",
+		"March", "Marzo",
+		"April", "Abril",
+		"May", "Mayo",
+		"June", "Junio",
+		"July", "Julio",
+		"August", "Agosto",
+		"September", "Septiembre",
+		"October", "Octubre",
+		"November", "Noviembre",
+		"December", "Diciembre")
+	return r.Replace(time.Format("2 de January"))
 }
 
 func Handler(request alexa.Request) (alexa.Response, error) {
