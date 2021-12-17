@@ -22,7 +22,11 @@ func TestPastRace(t *testing.T) {
 	raceResult := GetRaceResult(race, riders)
 
 	assert.Equal(t, &PastRace{
-		GcTop3: riders,
+		GcTop3: &Top3{
+			First:  riders[0],
+			Second: riders[1],
+			Third:  riders[2],
+		},
 	}, raceResult)
 }
 
@@ -53,7 +57,9 @@ func TestMultiStageRaceWithoutResults(t *testing.T) {
 
 	raceResult := GetRaceResult(race, nil)
 
-	assert.Equal(t, new(MultiStageRaceWithoutResults), raceResult)
+	assert.Equal(t, &MultiStageRaceWithoutResults{
+		StageNumber: 2,
+	}, raceResult)
 }
 
 func TestMultiStageRaceWithResults(t *testing.T) {
@@ -73,8 +79,18 @@ func TestMultiStageRaceWithResults(t *testing.T) {
 	raceResult := GetRaceResult(race, riders)
 
 	assert.Equal(t, &MultiStageRaceWithResults{
-		Top3:   riders,
-		GcTop3: riders,
+		Top3: &Top3{
+			First:  riders[0],
+			Second: riders[1],
+			Third:  riders[2],
+		},
+		GcTop3: &Top3{
+			First:  riders[0],
+			Second: riders[1],
+			Third:  riders[2],
+		},
+		StageNumber: 2,
+		IsLastStage: true,
 	}, raceResult)
 }
 
@@ -108,7 +124,11 @@ func TestSingleDayRaceWithResults(t *testing.T) {
 	raceResult := GetRaceResult(race, riders)
 
 	assert.Equal(t, &SingleDayRaceWithResults{
-		Top3: riders,
+		Top3: &Top3{
+			First:  riders[0],
+			Second: riders[1],
+			Third:  riders[2],
+		},
 	}, raceResult)
 }
 

@@ -22,19 +22,14 @@ func today() time.Time {
 	return today
 }
 
-type RaceResult struct {
-	top3   []*pcsscraper.Rider
-	gcTop3 []*pcsscraper.Rider
-}
-
-func findTodayStage(race *pcsscraper.Race) *pcsscraper.Stage {
+func findTodayStage(race *pcsscraper.Race) (*pcsscraper.Stage, int) {
 	today := today()
-	for _, stage := range race.Stages {
+	for i, stage := range race.Stages {
 		if stage.StartDate.AsTime() == today {
-			return stage
+			return stage, i + 1
 		}
 	}
-	return nil
+	return nil, 0
 }
 
 func raceIsFromThePast(race *pcsscraper.Race) bool {
@@ -67,14 +62,14 @@ func GetRaceResult(race *pcsscraper.Race, riders []*pcsscraper.Rider) RaceInfo {
 			return buildSingleDayRaceWithoutResults()
 		}
 	}
-	todayStage := findTodayStage(race)
+	todayStage, stageNumber := findTodayStage(race)
 	if todayStage == nil {
 		return buildRestDayStage()
 	}
 	if areStageResultsAvailable(todayStage) {
-		return buildMultiStageRaceWithResults(race, todayStage, riders)
+		return buildMultiStageRaceWithResults(race, todayStage, stageNumber, riders)
 	}
-	return buildMultiStageRaceWithoutResults()
+	return buildMultiStageRaceWithoutResults(stageNumber)
 }
 
 func buildSingleDayRaceWithoutResults() *SingleDayRaceWithoutResults {
@@ -91,20 +86,21 @@ func buildPastRace(race *pcsscraper.Race, riders []*pcsscraper.Rider) *PastRace 
 	}
 }
 
-func getTop3FromResult(result []*pcsscraper.RiderResult, riders []*pcsscraper.Rider) []*pcsscraper.Rider {
-	var top3 []*pcsscraper.Rider
-	riderIDs := []string{result[0].RiderId, result[1].RiderId, result[2].RiderId}
+func findRider(riderID string, riders []*pcsscraper.Rider) *pcsscraper.Rider {
 	for _, rider := range riders {
-		for _, riderID := range riderIDs {
-			if riderID == rider.Id {
-				top3 = append(top3, rider)
-			}
-		}
-		if len(top3) == len(riderIDs) {
-			break
+		if riderID == rider.Id {
+			return rider
 		}
 	}
-	return top3
+	return nil
+}
+
+func getTop3FromResult(result []*pcsscraper.RiderResult, riders []*pcsscraper.Rider) *Top3 {
+	return &Top3{
+		First:  findRider(result[0].RiderId, riders),
+		Second: findRider(result[1].RiderId, riders),
+		Third:  findRider(result[2].RiderId, riders),
+	}
 }
 
 func buildFutureRace() *FutureRace {
@@ -117,31 +113,45 @@ func buildSingleDayRaceWithResults(race *pcsscraper.Race, riders []*pcsscraper.R
 	}
 }
 
-func buildMultiStageRaceWithResults(race *pcsscraper.Race, stage *pcsscraper.Stage, riders []*pcsscraper.Rider) *MultiStageRaceWithResults {
+func buildMultiStageRaceWithResults(race *pcsscraper.Race, stage *pcsscraper.Stage, stageNumber int, riders []*pcsscraper.Rider) *MultiStageRaceWithResults {
 	return &MultiStageRaceWithResults{
-		Top3:   getTop3FromResult(stage.Result, riders),
-		GcTop3: getTop3FromResult(race.Result, riders),
+		Top3:        getTop3FromResult(stage.Result, riders),
+		GcTop3:      getTop3FromResult(race.Result, riders),
+		StageNumber: stageNumber,
+		IsLastStage: stageNumber == len(race.Stages),
 	}
 }
 
-func buildMultiStageRaceWithoutResults() *MultiStageRaceWithoutResults {
-	return new(MultiStageRaceWithoutResults)
+func buildMultiStageRaceWithoutResults(stageNumber int) *MultiStageRaceWithoutResults {
+	return &MultiStageRaceWithoutResults{
+		StageNumber: stageNumber,
+	}
 }
 
 type RaceInfo interface {
 	isRaceInfo()
 }
 
-type PastRace struct{ GcTop3 []*pcsscraper.Rider }
+type PastRace struct{ GcTop3 *Top3 }
 type FutureRace struct{}
 type RestDayStage struct{}
-type SingleDayRaceWithResults struct{ Top3 []*pcsscraper.Rider }
+type SingleDayRaceWithResults struct{ Top3 *Top3 }
 type SingleDayRaceWithoutResults struct{}
 type MultiStageRaceWithResults struct {
-	Top3   []*pcsscraper.Rider
-	GcTop3 []*pcsscraper.Rider
+	StageNumber int
+	Top3        *Top3
+	GcTop3      *Top3
+	IsLastStage bool
 }
-type MultiStageRaceWithoutResults struct{}
+type MultiStageRaceWithoutResults struct {
+	StageNumber int
+}
+
+type Top3 struct {
+	First  *pcsscraper.Rider
+	Second *pcsscraper.Rider
+	Third  *pcsscraper.Rider
+}
 
 func (_ PastRace) isRaceInfo()                     {}
 func (_ FutureRace) isRaceInfo()                   {}
