@@ -2,6 +2,7 @@ package alexa
 
 import (
 	"fmt"
+	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/internal/cycling"
 	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/pcsscraper"
 	"strings"
 	"time"
@@ -59,14 +60,18 @@ var (
 	}
 )
 
-func RiderFullName(rider *pcsscraper.Rider) string {
+func riderFullName(rider *pcsscraper.Rider) string {
 	return fmt.Sprintf("%s %s", rider.FirstName, rider.LastName)
 }
 
-func FormattedDate(time time.Time) string {
+func formattedDate(time time.Time) string {
 	return monthReplacer.Replace(time.Format("2 de January"))
 }
 
-func RaceName(raceID string) string {
+func raceName(raceID string) string {
 	return raceIDToName[raceID]
+}
+
+func phraseWithTop3(phrase string, top3 *cycling.Top3) string {
+	return fmt.Sprintf(phrase, riderFullName(top3.First), riderFullName(top3.Second), riderFullName(top3.Third))
 }

@@ -18,71 +18,7 @@ func IntentDispatcher(request Request, cyclingData *pcsscraper.CyclingData) Resp
 			}
 		}
 		raceResult := cycling.GetRaceResult(race, cyclingData.Riders)
-		raceName := RaceName(race.Id)
-		switch ri := raceResult.(type) {
-		case *cycling.PastRace:
-			message = fmt.Sprintf(
-				"%s terminó el %s. El ganador fue %s, el segundo %s y tercero %s",
-				raceName,
-				FormattedDate(race.EndDate.AsTime()),
-				RiderFullName(ri.GcTop3.First),
-				RiderFullName(ri.GcTop3.Second),
-				RiderFullName(ri.GcTop3.Third),
-			)
-		case *cycling.FutureRace:
-			message = fmt.Sprintf(
-				"%s no empieza hasta el %s",
-				raceName,
-				FormattedDate(race.StartDate.AsTime()),
-			)
-		case *cycling.RestDayStage:
-			message = fmt.Sprintf(
-				"Hoy es día de descanso en %s",
-				raceName,
-			)
-		case *cycling.SingleDayRaceWithResults:
-			message = fmt.Sprintf(
-				"Hoy se ha disputado %s. El ganador ha sido %s, el segundo %s y tercero %s",
-				raceName,
-				RiderFullName(ri.Top3.First),
-				RiderFullName(ri.Top3.Second),
-				RiderFullName(ri.Top3.Third),
-			)
-		case *cycling.SingleDayRaceWithoutResults:
-			message = fmt.Sprintf(
-				"Hoy se disputa %s pero todavía no tengo los resultados. Vuelve a preguntarme en un rato",
-				raceName,
-			)
-		case *cycling.MultiStageRaceWithResults: // If stageNumber is greater than 1 -> return GC. If it is the last stage -> announce race has ended
-			var stageName string
-			if ri.IsLastStage {
-				stageName = "última"
-			} else {
-				stageName = fmt.Sprintf("%dª", ri.StageNumber)
-			}
-			message = fmt.Sprintf(
-				"Hoy se ha disputado la %s etapa de %s. El ganador ha sido %s, el segundo %s y tercero %s.",
-				stageName,
-				raceName,
-				RiderFullName(ri.Top3.First),
-				RiderFullName(ri.Top3.Second),
-				RiderFullName(ri.Top3.Third),
-			)
-			if ri.StageNumber > 1 {
-				message += fmt.Sprintf(
-					"La clasificación general se queda: primero %s, segundo %s y tercero %s",
-					RiderFullName(ri.GcTop3.First),
-					RiderFullName(ri.GcTop3.Second),
-					RiderFullName(ri.GcTop3.Third),
-				)
-			}
-		case *cycling.MultiStageRaceWithoutResults:
-			message = fmt.Sprintf(
-				"Hoy se disputa la %dª etapa de %s pero todavía no tengo los resultados. Vuelve a preguntarme en un rato",
-				ri.StageNumber,
-				raceName,
-			)
-		}
+		message = messageForRaceResult(race, raceResult)
 	}
 	return Response{
 		Version: "1.0",
@@ -94,4 +30,63 @@ func IntentDispatcher(request Request, cyclingData *pcsscraper.CyclingData) Resp
 			ShouldEndSession: true,
 		},
 	}
+}
+
+func messageForRaceResult(race *pcsscraper.Race, raceResult cycling.RaceInfo) string {
+	raceName := raceName(race.Id)
+	switch ri := raceResult.(type) {
+	case *cycling.PastRace:
+		return fmt.Sprintf(
+			"%s terminó el %s. %s",
+			raceName,
+			formattedDate(race.EndDate.AsTime()),
+			phraseWithTop3("El ganador fue %s, segundo %s y tercero %s.", ri.GcTop3),
+		)
+	case *cycling.FutureRace:
+		return fmt.Sprintf(
+			"%s no empieza hasta el %s",
+			raceName,
+			formattedDate(race.StartDate.AsTime()),
+		)
+	case *cycling.RestDayStage:
+		return fmt.Sprintf(
+			"Hoy es día de descanso en %s",
+			raceName,
+		)
+	case *cycling.SingleDayRaceWithResults:
+		return fmt.Sprintf(
+			"Hoy se ha disputado %s. %s",
+			raceName,
+			phraseWithTop3("El ganador ha sido %s, segundo %s y tercero %s", ri.Top3),
+		)
+	case *cycling.SingleDayRaceWithoutResults:
+		return fmt.Sprintf(
+			"Hoy se disputa %s pero todavía no tengo los resultados. Vuelve a preguntarme en un rato",
+			raceName,
+		)
+	case *cycling.MultiStageRaceWithResults: // If stageNumber is greater than 1 -> return GC. If it is the last stage -> announce race has ended
+		var stageName string
+		if ri.IsLastStage {
+			stageName = "última"
+		} else {
+			stageName = fmt.Sprintf("%dª", ri.StageNumber)
+		}
+		message := fmt.Sprintf(
+			"Hoy se ha disputado la %s etapa de %s. %s",
+			stageName,
+			raceName,
+			phraseWithTop3("El ganador ha sido %s, segundo %s y tercero %s.", ri.Top3),
+		)
+		if ri.StageNumber > 1 {
+			message += phraseWithTop3("En la clasificación queda primero %s, segundo %s y tercero %s", ri.GcTop3)
+		}
+		return message
+	case *cycling.MultiStageRaceWithoutResults:
+		return fmt.Sprintf(
+			"Hoy se disputa la %dª etapa de %s pero todavía no tengo los resultados. Vuelve a preguntarme en un rato",
+			ri.StageNumber,
+			raceName,
+		)
+	}
+	return ""
 }
