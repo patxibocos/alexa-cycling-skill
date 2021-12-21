@@ -5,16 +5,6 @@ import (
 	"time"
 )
 
-func GetNextRace(races []*pcsscraper.Race) *pcsscraper.Race {
-	now := time.Now()
-	for _, race := range races {
-		if race.StartDate.AsTime().After(now) {
-			return race
-		}
-	}
-	return nil
-}
-
 func today() time.Time {
 	now := time.Now()
 	year, month, day := now.Date()
@@ -48,7 +38,7 @@ func areStageResultsAvailable(stage *pcsscraper.Stage) bool {
 	return stage.Result != nil && len(stage.Result) > 0
 }
 
-func GetRaceResult(race *pcsscraper.Race, riders []*pcsscraper.Rider) RaceInfo {
+func GetRaceResult(race *pcsscraper.Race, riders []*pcsscraper.Rider) RaceResult {
 	if raceIsFromThePast(race) {
 		return buildPastRace(race, riders)
 	}
@@ -97,9 +87,18 @@ func findRider(riderID string, riders []*pcsscraper.Rider) *pcsscraper.Rider {
 
 func getTop3FromResult(result []*pcsscraper.RiderResult, riders []*pcsscraper.Rider) *Top3 {
 	return &Top3{
-		First:  findRider(result[0].RiderId, riders),
-		Second: findRider(result[1].RiderId, riders),
-		Third:  findRider(result[2].RiderId, riders),
+		First: &RiderResult{
+			Rider: findRider(result[0].RiderId, riders),
+			Time:  result[0].Time,
+		},
+		Second: &RiderResult{
+			Rider: findRider(result[1].RiderId, riders),
+			Time:  result[1].Time,
+		},
+		Third: &RiderResult{
+			Rider: findRider(result[2].RiderId, riders),
+			Time:  result[2].Time,
+		},
 	}
 }
 
@@ -128,8 +127,8 @@ func buildMultiStageRaceWithoutResults(stageNumber int) *MultiStageRaceWithoutRe
 	}
 }
 
-type RaceInfo interface {
-	isRaceInfo()
+type RaceResult interface {
+	isRaceResult()
 }
 
 type PastRace struct{ GcTop3 *Top3 }
@@ -148,15 +147,20 @@ type MultiStageRaceWithoutResults struct {
 }
 
 type Top3 struct {
-	First  *pcsscraper.Rider
-	Second *pcsscraper.Rider
-	Third  *pcsscraper.Rider
+	First  *RiderResult
+	Second *RiderResult
+	Third  *RiderResult
 }
 
-func (_ PastRace) isRaceInfo()                     {}
-func (_ FutureRace) isRaceInfo()                   {}
-func (_ RestDayStage) isRaceInfo()                 {}
-func (_ SingleDayRaceWithResults) isRaceInfo()     {}
-func (_ SingleDayRaceWithoutResults) isRaceInfo()  {}
-func (_ MultiStageRaceWithResults) isRaceInfo()    {}
-func (_ MultiStageRaceWithoutResults) isRaceInfo() {}
+type RiderResult struct {
+	Rider *pcsscraper.Rider
+	Time  int64
+}
+
+func (_ PastRace) isRaceResult()                     {}
+func (_ FutureRace) isRaceResult()                   {}
+func (_ RestDayStage) isRaceResult()                 {}
+func (_ SingleDayRaceWithResults) isRaceResult()     {}
+func (_ SingleDayRaceWithoutResults) isRaceResult()  {}
+func (_ MultiStageRaceWithResults) isRaceResult()    {}
+func (_ MultiStageRaceWithoutResults) isRaceResult() {}

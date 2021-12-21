@@ -38,13 +38,13 @@ var (
 		"ronde-van-vlaanderen-2022":             "El Tour de Flandes",
 		"itzulia-basque-country-2022":           "La Vuelta al País Vasco",
 		"amstel-gold-race-2022":                 "La Amstel Gold Race",
-		"paris-roubaix-2022":                    "La París Roubaix",
+		"paris-roubaix-2022":                    "La París Rubé",
 		"la-fleche-wallone-2022":                "La Flecha Valona",
 		"liege-bastogne-liege-2022":             "La Lieja Bastoña Lieja",
 		"tour-de-romandie-2022":                 "El Tour de Romandía",
 		"Eschborn-Frankfurt-2022":               "La Eschborn Frankfurt",
-		"giro-d-italia-2022":                    "El Giro de Italia",
-		"dauphine-2022":                         "El Critérium del Dauphiné",
+		"giro-d-italia-2022":                    "El Yiro de Italia",
+		"dauphine-2022":                         "El Critérium del Dofiné",
 		"tour-de-suisse-2022":                   "El Tour de Suiza",
 		"tour-de-france-2022":                   "El Tour de Francia",
 		"san-sebastian-2022":                    "La Clásica San Sebastián",
@@ -73,5 +73,48 @@ func raceName(raceID string) string {
 }
 
 func phraseWithTop3(phrase string, top3 *cycling.Top3) string {
-	return fmt.Sprintf(phrase, riderFullName(top3.First), riderFullName(top3.Second), riderFullName(top3.Third))
+	return fmt.Sprintf(
+		phrase,
+		riderFullName(top3.First.Rider),
+		riderFullName(top3.Second.Rider),
+		riderFullName(top3.Third.Rider),
+	)
+}
+
+func singularOrPlural(word string, amount int64) string {
+	if amount == 1 {
+		return word
+	}
+	return word + "s"
+}
+
+func getGapMessage(gap int64) string {
+	if gap == 0 {
+		return "con el mismo tiempo"
+	}
+	if gap < 60 {
+		return fmt.Sprintf("a %d %s", gap, singularOrPlural("segundo", gap))
+	}
+	minutes := gap / 60
+	seconds := gap % 60
+	message := fmt.Sprintf("a %d %s", minutes, singularOrPlural("minuto", minutes))
+	if seconds > 0 {
+		message += fmt.Sprintf(" y %d %s", seconds, singularOrPlural("segundo", seconds))
+	}
+	return message
+}
+
+func phraseWithTop3AndGaps(phrase string, top3 *cycling.Top3) string {
+	firstToSecondGap := top3.Second.Time - top3.First.Time
+	secondToThirdGap := top3.Third.Time - top3.Second.Time
+	firstToSecondMessage := getGapMessage(firstToSecondGap)
+	secondToThirdMessage := getGapMessage(secondToThirdGap)
+	return fmt.Sprintf(
+		phrase,
+		riderFullName(top3.First.Rider),
+		firstToSecondMessage,
+		riderFullName(top3.Second.Rider),
+		secondToThirdMessage,
+		riderFullName(top3.Third.Rider),
+	)
 }

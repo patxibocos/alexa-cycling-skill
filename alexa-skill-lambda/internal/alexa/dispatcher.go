@@ -32,7 +32,7 @@ func IntentDispatcher(request Request, cyclingData *pcsscraper.CyclingData) Resp
 	}
 }
 
-func messageForRaceResult(race *pcsscraper.Race, raceResult cycling.RaceInfo) string {
+func messageForRaceResult(race *pcsscraper.Race, raceResult cycling.RaceResult) string {
 	raceName := raceName(race.Id)
 	switch ri := raceResult.(type) {
 	case *cycling.PastRace:
@@ -78,7 +78,7 @@ func messageForRaceResult(race *pcsscraper.Race, raceResult cycling.RaceInfo) st
 			phraseWithTop3("El ganador ha sido %s, segundo %s y tercero %s.", ri.Top3),
 		)
 		if ri.StageNumber > 1 {
-			message += phraseWithTop3("En la clasificación queda primero %s, segundo %s y tercero %s", ri.GcTop3)
+			message += phraseWithTop3AndGaps("En la clasificación queda primero %s, segundo %s %s y tercero %s %s", ri.GcTop3)
 		}
 		return message
 	case *cycling.MultiStageRaceWithoutResults:
