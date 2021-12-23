@@ -145,3 +145,42 @@ func TestRestDayStage(t *testing.T) {
 
 	assert.Equal(t, new(RestDayStage), raceResult)
 }
+
+func TestFindNextRaceNotFound(t *testing.T) {
+	yesterday := timestamppb.New(today().Add(-1 * Day))
+	today := timestamppb.New(today())
+	races := []*pcsscraper.Race{
+		{StartDate: yesterday},
+		{StartDate: today},
+	}
+
+	nextRace := FindNextRace(races)
+
+	assert.Nil(t, nextRace)
+}
+
+func TestFindNextRaceIsFound(t *testing.T) {
+	tomorrow := timestamppb.New(today().Add(1 * Day))
+	races := []*pcsscraper.Race{
+		{StartDate: tomorrow},
+	}
+
+	nextRace := FindNextRace(races)
+
+	assert.NotNil(t, nextRace)
+}
+
+func TestGetActiveRaces(t *testing.T) {
+	yesterday := today().Add(-1 * Day)
+	tomorrow := today().Add(1 * Day)
+	today := today()
+	races := []*pcsscraper.Race{
+		{StartDate: timestamppb.New(yesterday), EndDate: timestamppb.New(today)},
+		{StartDate: timestamppb.New(today), EndDate: timestamppb.New(today)},
+		{StartDate: timestamppb.New(tomorrow), EndDate: timestamppb.New(tomorrow)},
+	}
+
+	activeRaces := GetActiveRaces(races)
+
+	assert.Len(t, activeRaces, 2)
+}

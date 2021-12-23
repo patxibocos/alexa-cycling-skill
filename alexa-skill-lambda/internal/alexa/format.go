@@ -24,7 +24,7 @@ var (
 		"December", "Diciembre")
 
 	raceIDToName = map[string]string{
-		"uae-tour-2022":                         "El UAE Tour",
+		"uae-tour-2022":                         "El U A E Tour",
 		"omloop-het-nieuwsblad-2022":            "La Omloop Het Nieuwsblad",
 		"strade-bianche-2022":                   "La Strade Bianche",
 		"paris-nice-2022":                       "La París Niza",

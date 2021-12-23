@@ -62,6 +62,32 @@ func GetRaceResult(race *pcsscraper.Race, riders []*pcsscraper.Rider) RaceResult
 	return buildMultiStageRaceWithoutResults(stageNumber)
 }
 
+func raceIsActive(race *pcsscraper.Race) bool {
+	today := today()
+	return (race.StartDate.AsTime() == today || race.StartDate.AsTime().Before(today)) &&
+		(race.EndDate.AsTime() == today || race.EndDate.AsTime().After(today))
+}
+
+func GetActiveRaces(races []*pcsscraper.Race) []*pcsscraper.Race {
+	var activeRaces []*pcsscraper.Race
+	for _, race := range races {
+		if raceIsActive(race) {
+			activeRaces = append(activeRaces, race)
+		}
+	}
+	return activeRaces
+}
+
+func FindNextRace(races []*pcsscraper.Race) *pcsscraper.Race {
+	today := today()
+	for _, race := range races {
+		if race.StartDate.AsTime().After(today) {
+			return race
+		}
+	}
+	return nil
+}
+
 func buildSingleDayRaceWithoutResults() *SingleDayRaceWithoutResults {
 	return new(SingleDayRaceWithoutResults)
 }
