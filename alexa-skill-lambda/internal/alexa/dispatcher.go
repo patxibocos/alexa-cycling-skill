@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/internal/cycling"
 	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/pcsscraper"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -72,7 +73,8 @@ func handleStageInfo(intent Intent, cyclingData *pcsscraper.CyclingData) string 
 			messages = append(messages, fmt.Sprintf("El recorrido va de %s a %s", rs.Departure, rs.Arrival))
 		}
 		if rs.Distance > 0 {
-			messages = append(messages, fmt.Sprintf("Tiene una distancia de %f kilómetros", rs.Distance))
+			formattedDistance := strconv.FormatFloat(float64(rs.Distance), 'f', -1, 32)
+			messages = append(messages, fmt.Sprintf("Tiene una distancia de %s kilómetros", formattedDistance))
 		}
 		if rs.Type != pcsscraper.Stage_TYPE_UNSPECIFIED {
 			messages = append(messages, fmt.Sprintf("El perfil de la etapa es %s", stageType(rs.Type)))

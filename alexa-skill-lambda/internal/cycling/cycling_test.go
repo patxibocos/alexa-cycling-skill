@@ -184,3 +184,59 @@ func TestGetActiveRaces(t *testing.T) {
 
 	assert.Len(t, activeRaces, 2)
 }
+
+func TestNoStage(t *testing.T) {
+	tomorrow := today().Add(1 * Day)
+	today := today()
+	race := &pcsscraper.Race{Stages: []*pcsscraper.Stage{{StartDate: timestamppb.New(tomorrow)}}}
+
+	raceStage := GetRaceStage(race, today)
+
+	assert.Equal(t, new(NoStage), raceStage)
+}
+
+func TestRestDay(t *testing.T) {
+	yesterday := today().Add(-1 * Day)
+	tomorrow := today().Add(1 * Day)
+	today := today()
+	race := &pcsscraper.Race{
+		StartDate: timestamppb.New(yesterday),
+		EndDate:   timestamppb.New(tomorrow),
+		Stages:    []*pcsscraper.Stage{{StartDate: timestamppb.New(yesterday)}, {StartDate: timestamppb.New(tomorrow)}},
+	}
+
+	raceStage := GetRaceStage(race, today)
+
+	assert.Equal(t, new(RestDayStage), raceStage)
+}
+
+func TestStageWithoutData(t *testing.T) {
+	today := today()
+	race := &pcsscraper.Race{Stages: []*pcsscraper.Stage{{StartDate: timestamppb.New(today)}}}
+
+	raceStage := GetRaceStage(race, today)
+
+	assert.Equal(t, new(StageWithoutData), raceStage)
+}
+
+func TestStageWithData(t *testing.T) {
+	today := today()
+	bilbao := "Bilbao"
+	barcelona := "Barcelona"
+	race := &pcsscraper.Race{Stages: []*pcsscraper.Stage{{
+		StartDate: timestamppb.New(today),
+		Departure: &bilbao,
+		Arrival:   &barcelona,
+		Distance:  123.456,
+		Type:      pcsscraper.Stage_TYPE_MOUNTAINS_UPHILL_FINISH,
+	}}}
+
+	raceStage := GetRaceStage(race, today)
+
+	assert.Equal(t, &StageWithData{
+		Departure: "Bilbao",
+		Arrival:   "Barcelona",
+		Distance:  123.456,
+		Type:      pcsscraper.Stage_TYPE_MOUNTAINS_UPHILL_FINISH,
+	}, raceStage)
+}
