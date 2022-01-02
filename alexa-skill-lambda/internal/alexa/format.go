@@ -58,6 +58,14 @@ var (
 		"il-lombardia-2022":                     "El Giro de Lombardía",
 		"tour-of-guangxi-2022":                  "El Tour de Guangxi",
 	}
+
+	stageTypeToText = map[pcsscraper.Stage_Type]string{
+		pcsscraper.Stage_TYPE_FLAT:                    "llano",
+		pcsscraper.Stage_TYPE_HILLS_FLAT_FINISH:       "de media montaña con final llano",
+		pcsscraper.Stage_TYPE_HILLS_UPHILL_FINISH:     "de media montaña con final en alto",
+		pcsscraper.Stage_TYPE_MOUNTAINS_FLAT_FINISH:   "de montaña con final llano",
+		pcsscraper.Stage_TYPE_MOUNTAINS_UPHILL_FINISH: "de montaña con final en alto",
+	}
 )
 
 func riderFullName(rider *pcsscraper.Rider) string {
@@ -70,6 +78,10 @@ func formattedDate(time time.Time) string {
 
 func raceName(raceID string) string {
 	return raceIDToName[raceID]
+}
+
+func stageType(stageType pcsscraper.Stage_Type) string {
+	return stageTypeToText[stageType]
 }
 
 func phraseWithTop3(phrase string, top3 *cycling.Top3) string {

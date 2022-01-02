@@ -5,6 +5,7 @@ import (
 	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/internal/cycling"
 	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/pcsscraper"
 	"strings"
+	"time"
 )
 
 func handleRaceResult(intent Intent, cyclingData *pcsscraper.CyclingData) string {
@@ -48,10 +49,47 @@ func handleLaunchRequest(cyclingData *pcsscraper.CyclingData) string {
 	}
 }
 
+func handleStageInfo(intent Intent, cyclingData *pcsscraper.CyclingData) string {
+	raceNameSlot := intent.Slots["raceName"]
+	daySlot := intent.Slots["day"]
+	day, _ := time.Parse("2006-01-02", daySlot.Value)
+	raceId := raceNameSlot.Resolutions.ResolutionsPerAuthority[0].Values[0].Value.ID
+	var race *pcsscraper.Race
+	for _, r := range cyclingData.Races {
+		if r.Id == raceId {
+			race = r
+		}
+	}
+	raceStage := cycling.GetRaceStage(race, day)
+	switch rs := raceStage.(type) {
+	case *cycling.RestDayStage:
+		return "Los corredores tienen descanso ese día"
+	case *cycling.NoStage:
+		return fmt.Sprintf("%s no tiene etapa para el %s", raceName(race.Id), formattedDate(day))
+	case *cycling.StageWithData:
+		var messages []string
+		if rs.Departure != "" && rs.Arrival != "" {
+			messages = append(messages, fmt.Sprintf("El recorrido va de %s a %s", rs.Departure, rs.Arrival))
+		}
+		if rs.Distance > 0 {
+			messages = append(messages, fmt.Sprintf("Tiene una distancia de %f kilómetros", rs.Distance))
+		}
+		if rs.Type != pcsscraper.Stage_TYPE_UNSPECIFIED {
+			messages = append(messages, fmt.Sprintf("El perfil de la etapa es %s", stageType(rs.Type)))
+		}
+		return strings.Join(messages, ". ")
+	case *cycling.StageWithoutData:
+		return "Aún no hay información disponible de la etapa"
+	}
+	return ""
+}
+
 func IntentDispatcher(request Request, cyclingData *pcsscraper.CyclingData) Response {
 	message := ""
 	if request.Body.Intent.Name == "RaceResult" {
 		message = handleRaceResult(request.Body.Intent, cyclingData)
+	} else if request.Body.Intent.Name == "StageInfo" {
+		message = handleStageInfo(request.Body.Intent, cyclingData)
 	} else if request.Body.Type == "LaunchRequest" {
 		message = handleLaunchRequest(cyclingData)
 	}

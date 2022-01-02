@@ -88,6 +88,31 @@ func FindNextRace(races []*pcsscraper.Race) *pcsscraper.Race {
 	return nil
 }
 
+func GetRaceStage(race *pcsscraper.Race, day time.Time) RaceStage {
+	var stage *pcsscraper.Stage
+	for _, s := range race.Stages {
+		if s.StartDate.AsTime() == day {
+			stage = s
+		}
+	}
+	if stage == nil {
+		// Check if rest day
+		if race.StartDate.AsTime().Before(day) && race.EndDate.AsTime().After(day) {
+			return new(RestDayStage)
+		}
+		return new(NoStage)
+	}
+	if stage.GetDeparture() == "" && stage.GetArrival() == "" && stage.GetDistance() == 0 && stage.GetType() == pcsscraper.Stage_TYPE_UNSPECIFIED {
+		return new(StageWithoutData)
+	}
+	return &StageWithData{
+		Departure: stage.GetDeparture(),
+		Arrival:   stage.GetArrival(),
+		Distance:  stage.GetDistance(),
+		Type:      stage.GetType(),
+	}
+}
+
 func buildSingleDayRaceWithoutResults() *SingleDayRaceWithoutResults {
 	return new(SingleDayRaceWithoutResults)
 }
@@ -190,3 +215,21 @@ func (_ SingleDayRaceWithResults) isRaceResult()     {}
 func (_ SingleDayRaceWithoutResults) isRaceResult()  {}
 func (_ MultiStageRaceWithResults) isRaceResult()    {}
 func (_ MultiStageRaceWithoutResults) isRaceResult() {}
+
+type RaceStage interface {
+	isRaceStage()
+}
+
+type NoStage struct{}
+type StageWithData struct {
+	Departure string
+	Arrival   string
+	Distance  float32
+	Type      pcsscraper.Stage_Type
+}
+type StageWithoutData struct{}
+
+func (_ RestDayStage) isRaceStage()     {}
+func (_ NoStage) isRaceStage()          {}
+func (_ StageWithData) isRaceStage()    {}
+func (_ StageWithoutData) isRaceStage() {}
