@@ -190,7 +190,7 @@ func TestNoStage(t *testing.T) {
 	today := today()
 	race := &pcsscraper.Race{Stages: []*pcsscraper.Stage{{StartDate: timestamppb.New(tomorrow)}}}
 
-	raceStage := GetRaceStage(race, today)
+	raceStage := GetRaceStageForDay(race, today)
 
 	assert.Equal(t, new(NoStage), raceStage)
 }
@@ -205,7 +205,7 @@ func TestRestDay(t *testing.T) {
 		Stages:    []*pcsscraper.Stage{{StartDate: timestamppb.New(yesterday)}, {StartDate: timestamppb.New(tomorrow)}},
 	}
 
-	raceStage := GetRaceStage(race, today)
+	raceStage := GetRaceStageForDay(race, today)
 
 	assert.Equal(t, new(RestDayStage), raceStage)
 }
@@ -214,9 +214,9 @@ func TestStageWithoutData(t *testing.T) {
 	today := today()
 	race := &pcsscraper.Race{Stages: []*pcsscraper.Stage{{StartDate: timestamppb.New(today)}}}
 
-	raceStage := GetRaceStage(race, today)
+	raceStage := GetRaceStageForDay(race, today)
 
-	assert.Equal(t, new(StageWithoutData), raceStage)
+	assert.Equal(t, &StageWithoutData{StartDate: timestamppb.New(today)}, raceStage)
 }
 
 func TestStageWithData(t *testing.T) {
@@ -231,12 +231,13 @@ func TestStageWithData(t *testing.T) {
 		Type:      pcsscraper.Stage_TYPE_MOUNTAINS_UPHILL_FINISH,
 	}}}
 
-	raceStage := GetRaceStage(race, today)
+	raceStage := GetRaceStageForDay(race, today)
 
 	assert.Equal(t, &StageWithData{
 		Departure: "Bilbao",
 		Arrival:   "Barcelona",
 		Distance:  123.456,
 		Type:      pcsscraper.Stage_TYPE_MOUNTAINS_UPHILL_FINISH,
+		StartDate: timestamppb.New(today),
 	}, raceStage)
 }

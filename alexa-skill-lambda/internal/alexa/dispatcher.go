@@ -50,7 +50,7 @@ func handleLaunchRequest(cyclingData *pcsscraper.CyclingData) string {
 	}
 }
 
-func handleStageInfo(intent Intent, cyclingData *pcsscraper.CyclingData) string {
+func handleDayStageInfo(intent Intent, cyclingData *pcsscraper.CyclingData) string {
 	raceNameSlot := intent.Slots["raceName"]
 	daySlot := intent.Slots["day"]
 	day, _ := time.Parse("2006-01-02", daySlot.Value)
@@ -61,7 +61,7 @@ func handleStageInfo(intent Intent, cyclingData *pcsscraper.CyclingData) string 
 			race = r
 		}
 	}
-	raceStage := cycling.GetRaceStage(race, day)
+	raceStage := cycling.GetRaceStageForDay(race, day)
 	switch rs := raceStage.(type) {
 	case *cycling.RestDayStage:
 		return "Los corredores tienen descanso ese día"
@@ -86,12 +86,55 @@ func handleStageInfo(intent Intent, cyclingData *pcsscraper.CyclingData) string 
 	return ""
 }
 
+func handleNumberStageInfo(intent Intent, cyclingData *pcsscraper.CyclingData) string {
+	raceNameSlot := intent.Slots["raceName"]
+	numberSlot := intent.Slots["number"]
+	raceId := raceNameSlot.Resolutions.ResolutionsPerAuthority[0].Values[0].Value.ID
+	var race *pcsscraper.Race
+	for _, r := range cyclingData.Races {
+		if r.Id == raceId {
+			race = r
+		}
+	}
+	stageIndex, _ := strconv.Atoi(numberSlot.Value)
+	raceStage := cycling.GetRaceStageForIndex(race, stageIndex)
+	switch rs := raceStage.(type) {
+	case *cycling.NoStage:
+		var stageOrStages string
+		if len(race.Stages) > 1 {
+			stageOrStages = "etapas"
+		} else {
+			stageOrStages = "etapa"
+		}
+		return fmt.Sprintf("%s sólo tiene %d %s", raceName(race.Id), len(race.Stages), stageOrStages)
+	case *cycling.StageWithData:
+		var messages []string
+		messages = append(messages, fmt.Sprintf("La etapa comienza el %s", formattedDate(rs.StartDate.AsTime())))
+		if rs.Departure != "" && rs.Arrival != "" {
+			messages = append(messages, fmt.Sprintf("El recorrido va de %s a %s", rs.Departure, rs.Arrival))
+		}
+		if rs.Distance > 0 {
+			formattedDistance := strconv.FormatFloat(float64(rs.Distance), 'f', -1, 32)
+			messages = append(messages, fmt.Sprintf("Tiene una distancia de %s kilómetros", formattedDistance))
+		}
+		if rs.Type != pcsscraper.Stage_TYPE_UNSPECIFIED {
+			messages = append(messages, fmt.Sprintf("El perfil de la etapa es %s", stageType(rs.Type)))
+		}
+		return strings.Join(messages, ". ")
+	case *cycling.StageWithoutData:
+		return fmt.Sprintf("La etapa comienza el %s. Aún no hay información disponible de la etapa", formattedDate(rs.StartDate.AsTime()))
+	}
+	return ""
+}
+
 func IntentDispatcher(request Request, cyclingData *pcsscraper.CyclingData) Response {
 	message := ""
 	if request.Body.Intent.Name == "RaceResult" {
 		message = handleRaceResult(request.Body.Intent, cyclingData)
-	} else if request.Body.Intent.Name == "StageInfo" {
-		message = handleStageInfo(request.Body.Intent, cyclingData)
+	} else if request.Body.Intent.Name == "DayStageInfo" {
+		message = handleDayStageInfo(request.Body.Intent, cyclingData)
+	} else if request.Body.Intent.Name == "NumberStageInfo" {
+		message = handleNumberStageInfo(request.Body.Intent, cyclingData)
 	} else if request.Body.Type == "LaunchRequest" {
 		message = handleLaunchRequest(cyclingData)
 	}

@@ -2,6 +2,7 @@ package cycling
 
 import (
 	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/pcsscraper"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"time"
 )
 
@@ -88,7 +89,7 @@ func FindNextRace(races []*pcsscraper.Race) *pcsscraper.Race {
 	return nil
 }
 
-func GetRaceStage(race *pcsscraper.Race, day time.Time) RaceStage {
+func GetRaceStageForDay(race *pcsscraper.Race, day time.Time) RaceStage {
 	var stage *pcsscraper.Stage
 	for _, s := range race.Stages {
 		if s.StartDate.AsTime() == day {
@@ -103,13 +104,40 @@ func GetRaceStage(race *pcsscraper.Race, day time.Time) RaceStage {
 		return new(NoStage)
 	}
 	if stage.GetDeparture() == "" && stage.GetArrival() == "" && stage.GetDistance() == 0 && stage.GetType() == pcsscraper.Stage_TYPE_UNSPECIFIED {
-		return new(StageWithoutData)
+		return &StageWithoutData{
+			StartDate: stage.StartDate,
+		}
 	}
 	return &StageWithData{
 		Departure: stage.GetDeparture(),
 		Arrival:   stage.GetArrival(),
 		Distance:  stage.GetDistance(),
 		Type:      stage.GetType(),
+		StartDate: stage.StartDate,
+	}
+}
+
+func GetRaceStageForIndex(race *pcsscraper.Race, index int) RaceStage {
+	var stage *pcsscraper.Stage
+	for i, s := range race.Stages {
+		if i+1 == index {
+			stage = s
+		}
+	}
+	if stage == nil {
+		return new(NoStage)
+	}
+	if stage.GetDeparture() == "" && stage.GetArrival() == "" && stage.GetDistance() == 0 && stage.GetType() == pcsscraper.Stage_TYPE_UNSPECIFIED {
+		return &StageWithoutData{
+			StartDate: stage.GetStartDate(),
+		}
+	}
+	return &StageWithData{
+		Departure: stage.GetDeparture(),
+		Arrival:   stage.GetArrival(),
+		Distance:  stage.GetDistance(),
+		Type:      stage.GetType(),
+		StartDate: stage.GetStartDate(),
 	}
 }
 
@@ -226,8 +254,11 @@ type StageWithData struct {
 	Arrival   string
 	Distance  float32
 	Type      pcsscraper.Stage_Type
+	StartDate *timestamppb.Timestamp
 }
-type StageWithoutData struct{}
+type StageWithoutData struct {
+	StartDate *timestamppb.Timestamp
+}
 
 func (_ RestDayStage) isRaceStage()     {}
 func (_ NoStage) isRaceStage()          {}
