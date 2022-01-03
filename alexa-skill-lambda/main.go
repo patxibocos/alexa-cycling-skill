@@ -32,7 +32,7 @@ func Handler(request alexa.Request) (alexa.Response, error) {
 	cyclingData := new(pcsscraper.CyclingData)
 	body, _ := ioutil.ReadAll(output.Body)
 	_ = proto.Unmarshal(body, cyclingData)
-	return alexa.IntentDispatcher(request, cyclingData), nil
+	return alexa.RequestHandler(request, cyclingData), nil
 }
 
 func main() {
