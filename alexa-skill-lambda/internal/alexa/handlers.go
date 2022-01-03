@@ -50,6 +50,7 @@ func handleRaceResult(request Request, cyclingData *pcsscraper.CyclingData) Resp
 			},
 			ShouldEndSession: endSession,
 		},
+		SessionAttributes: sessionAttributes,
 	}
 }
 
@@ -97,14 +98,9 @@ func handleLaunchRequest(_ Request, cyclingData *pcsscraper.CyclingData) Respons
 	}
 }
 
-func handleDayStageInfo(request Request, cyclingData *pcsscraper.CyclingData) Response {
-	intent := request.Body.Intent
-	raceNameSlot := intent.Slots["race"]
-	daySlot := intent.Slots["day"]
-	day, _ := time.Parse("2006-01-02", daySlot.Value)
-	raceId := raceNameSlot.Resolutions.ResolutionsPerAuthority[0].Values[0].Value.ID
+func messageForDayStage(day time.Time, raceId string, races []*pcsscraper.Race) string {
 	var race *pcsscraper.Race
-	for _, r := range cyclingData.Races {
+	for _, r := range races {
 		if r.Id == raceId {
 			race = r
 		}
@@ -113,7 +109,7 @@ func handleDayStageInfo(request Request, cyclingData *pcsscraper.CyclingData) Re
 	var message string
 	switch rs := raceStage.(type) {
 	case *cycling.RestDayStage:
-		message = "Los corredores tienen descanso ese día"
+		message = "Los corredores tienen descanso"
 	case *cycling.NoStage:
 		message = fmt.Sprintf("%s no tiene etapa para el %s", raceName(race.Id), formattedDate(day))
 	case *cycling.StageWithData:
@@ -132,6 +128,16 @@ func handleDayStageInfo(request Request, cyclingData *pcsscraper.CyclingData) Re
 	case *cycling.StageWithoutData:
 		message = "Aún no hay información disponible de la etapa"
 	}
+	return message
+}
+
+func handleDayStageInfo(request Request, cyclingData *pcsscraper.CyclingData) Response {
+	intent := request.Body.Intent
+	raceNameSlot := intent.Slots["race"]
+	daySlot := intent.Slots["day"]
+	day, _ := time.Parse("2006-01-02", daySlot.Value)
+	raceId := raceNameSlot.Resolutions.ResolutionsPerAuthority[0].Values[0].Value.ID
+	message := messageForDayStage(day, raceId, cyclingData.Races)
 	return Response{
 		Version: "1.0",
 		Body: ResBody{
@@ -209,13 +215,19 @@ func handleNo(_ Request, _ *pcsscraper.CyclingData) Response {
 	}
 }
 
-func handleYes(_ Request, _ *pcsscraper.CyclingData) Response {
+func handleYes(request Request, cyclingData *pcsscraper.CyclingData) Response {
+	// TODO Check that question is "StageInfo"
+	dayAttribute := request.Session.Attributes["day"]
+	raceAttribute := request.Session.Attributes["race"]
+	day, _ := time.Parse("2006-01-02", fmt.Sprintf("%v", dayAttribute))
+	raceId := fmt.Sprintf("%v", raceAttribute)
+	message := messageForDayStage(day, raceId, cyclingData.Races)
 	return Response{
 		Version: "1.0",
 		Body: ResBody{
 			OutputSpeech: &OutputSpeech{
 				Type: "PlainText",
-				Text: "No",
+				Text: message,
 			},
 			ShouldEndSession: true,
 		},
