@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func today() time.Time {
+func Today() time.Time {
 	now := time.Now()
 	year, month, day := now.Date()
 	today := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
@@ -14,7 +14,7 @@ func today() time.Time {
 }
 
 func findTodayStage(race *pcsscraper.Race) (*pcsscraper.Stage, int) {
-	today := today()
+	today := Today()
 	for i, stage := range race.Stages {
 		if stage.StartDate.AsTime() == today {
 			return stage, i + 1
@@ -24,11 +24,11 @@ func findTodayStage(race *pcsscraper.Race) (*pcsscraper.Stage, int) {
 }
 
 func raceIsFromThePast(race *pcsscraper.Race) bool {
-	return race.EndDate.AsTime().Before(today())
+	return race.EndDate.AsTime().Before(Today())
 }
 
 func raceIsFromTheFuture(race *pcsscraper.Race) bool {
-	return race.StartDate.AsTime().After(today())
+	return race.StartDate.AsTime().After(Today())
 }
 
 func isSingleDayRace(race *pcsscraper.Race) bool {
@@ -64,7 +64,7 @@ func GetRaceResult(race *pcsscraper.Race, riders []*pcsscraper.Rider) RaceResult
 }
 
 func raceIsActive(race *pcsscraper.Race) bool {
-	today := today()
+	today := Today()
 	return (race.StartDate.AsTime() == today || race.StartDate.AsTime().Before(today)) &&
 		(race.EndDate.AsTime() == today || race.EndDate.AsTime().After(today))
 }
@@ -80,7 +80,7 @@ func GetActiveRaces(races []*pcsscraper.Race) []*pcsscraper.Race {
 }
 
 func FindNextRace(races []*pcsscraper.Race) *pcsscraper.Race {
-	today := today()
+	today := Today()
 	for _, race := range races {
 		if race.StartDate.AsTime().After(today) {
 			return race

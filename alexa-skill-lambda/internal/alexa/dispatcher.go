@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func handleRaceResult(intent Intent, cyclingData *pcsscraper.CyclingData) string {
+func handleRaceResult(intent Intent, cyclingData *pcsscraper.CyclingData) Response {
 	raceNameSlot := intent.Slots["raceName"]
 	raceId := raceNameSlot.Resolutions.ResolutionsPerAuthority[0].Values[0].Value.ID
 	var race *pcsscraper.Race
@@ -20,25 +20,60 @@ func handleRaceResult(intent Intent, cyclingData *pcsscraper.CyclingData) string
 	}
 	raceResult := cycling.GetRaceResult(race, cyclingData.Riders)
 	message := messageForRaceResult(race, raceResult)
-	return message
+	endSession := true
+	sessionAttributes := make(map[string]interface{})
+	if multiStageRaceWithResults, ok := raceResult.(*cycling.MultiStageRaceWithResults); ok {
+		if !multiStageRaceWithResults.IsLastStage {
+			// Ask if user wants info about next race
+			// Set in session raceId and tomorrow's date to handle in YesIntent handler
+			endSession = false
+			sessionAttributes["question"] = "StageInfo"
+			sessionAttributes["race"] = raceId
+			sessionAttributes["day"] = cycling.Today().Add(24 * time.Hour).Format("2006-01-02")
+			message += ". Quieres saber cómo es la etapa de mañana?"
+		}
+	}
+	if _, ok := raceResult.(*cycling.FutureRace); ok {
+		endSession = false
+		sessionAttributes["question"] = "StageInfo"
+		sessionAttributes["race"] = raceId
+		sessionAttributes["day"] = race.StartDate.AsTime().Format("2006-01-02")
+		message += ". Quieres saber cómo será la primera etapa?"
+	}
+	return Response{
+		Version: "1.0",
+		Body: ResBody{
+			OutputSpeech: &OutputSpeech{
+				Type: "PlainText",
+				Text: message,
+			},
+			ShouldEndSession: endSession,
+		},
+	}
 }
 
-func handleLaunchRequest(cyclingData *pcsscraper.CyclingData) string {
+func handleLaunchRequest(cyclingData *pcsscraper.CyclingData) (message string, endSession bool) {
 	activeRaces := cycling.GetActiveRaces(cyclingData.Races)
+	endSession = true
 	switch len(activeRaces) {
 	case 0:
-		message := "No hay ninguna carrera activa ahora mismo"
+		message = "No hay ninguna carrera activa ahora mismo"
 		nextRace := cycling.FindNextRace(cyclingData.Races)
 		if nextRace == nil {
 			message += ". La temporada ha acabado"
 		} else {
-			message += fmt.Sprintf(". La siguiente carrera es %s y se disputa el %s", raceName(nextRace.Id), formattedDate(nextRace.StartDate.AsTime()))
+			message += fmt.Sprintf(
+				". La siguiente carrera es %s y se disputa el %s",
+				raceName(nextRace.Id),
+				formattedDate(nextRace.StartDate.AsTime()),
+			)
+			message += ". Quieres saber cómo será la primera etapa?"
+			endSession = false
 		}
-		return message
 	case 1:
 		race := activeRaces[0]
 		raceResult := cycling.GetRaceResult(race, cyclingData.Riders)
-		return messageForRaceResult(race, raceResult)
+		message = messageForRaceResult(race, raceResult)
 	default:
 		var raceMessages []string
 		for _, race := range activeRaces {
@@ -46,8 +81,9 @@ func handleLaunchRequest(cyclingData *pcsscraper.CyclingData) string {
 			message := messageForRaceResult(race, raceResult)
 			raceMessages = append(raceMessages, message)
 		}
-		return strings.Join(raceMessages, ". ")
+		message = strings.Join(raceMessages, ". ")
 	}
+	return
 }
 
 func handleDayStageInfo(intent Intent, cyclingData *pcsscraper.CyclingData) string {
@@ -127,16 +163,47 @@ func handleNumberStageInfo(intent Intent, cyclingData *pcsscraper.CyclingData) s
 	return ""
 }
 
+func handleNo(_ Session) Response {
+	return Response{
+		Version: "1.0",
+		Body: ResBody{
+			OutputSpeech: &OutputSpeech{
+				Type: "PlainText",
+				Text: "Sí",
+			},
+			ShouldEndSession: true,
+		},
+	}
+}
+
+func handleYes(_ Session) Response {
+	return Response{
+		Version: "1.0",
+		Body: ResBody{
+			OutputSpeech: &OutputSpeech{
+				Type: "PlainText",
+				Text: "No",
+			},
+			ShouldEndSession: true,
+		},
+	}
+}
+
 func IntentDispatcher(request Request, cyclingData *pcsscraper.CyclingData) Response {
 	message := ""
+	endSession := true
 	if request.Body.Intent.Name == "RaceResult" {
-		message = handleRaceResult(request.Body.Intent, cyclingData)
+		return handleRaceResult(request.Body.Intent, cyclingData)
 	} else if request.Body.Intent.Name == "DayStageInfo" {
 		message = handleDayStageInfo(request.Body.Intent, cyclingData)
 	} else if request.Body.Intent.Name == "NumberStageInfo" {
 		message = handleNumberStageInfo(request.Body.Intent, cyclingData)
+	} else if request.Body.Intent.Name == "AMAZON.YesIntent" {
+		return handleYes(request.Session)
+	} else if request.Body.Intent.Name == "AMAZON.NoIntent" {
+		return handleNo(request.Session)
 	} else if request.Body.Type == "LaunchRequest" {
-		message = handleLaunchRequest(cyclingData)
+		message, endSession = handleLaunchRequest(cyclingData)
 	}
 	return Response{
 		Version: "1.0",
@@ -145,7 +212,7 @@ func IntentDispatcher(request Request, cyclingData *pcsscraper.CyclingData) Resp
 				Type: "PlainText",
 				Text: message,
 			},
-			ShouldEndSession: true,
+			ShouldEndSession: endSession,
 		},
 	}
 }
