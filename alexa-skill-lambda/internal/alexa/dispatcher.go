@@ -4,7 +4,7 @@ import (
 	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/pcsscraper"
 )
 
-var routing = map[string]func(Request, *pcsscraper.CyclingData) Response{
+var intentRouting = map[string]func(Request, *pcsscraper.CyclingData) Response{
 	"LaunchRequest":    handleLaunchRequest,
 	"RaceResult":       handleRaceResult,
 	"DayStageInfo":     handleDayStageInfo,
@@ -17,7 +17,7 @@ func RequestHandler(request Request, cyclingData *pcsscraper.CyclingData) Respon
 	if request.Body.Type == "LaunchRequest" {
 		return handleLaunchRequest(request, cyclingData)
 	}
-	if handler, ok := routing[request.Body.Intent.Name]; ok {
+	if handler, ok := intentRouting[request.Body.Intent.Name]; ok {
 		return handler(request, cyclingData)
 	}
 	return Response{

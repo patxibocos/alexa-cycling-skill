@@ -2,71 +2,40 @@ package cycling
 
 import (
 	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/pcsscraper"
-	"google.golang.org/protobuf/types/known/timestamppb"
 	"time"
 )
-
-func Today() time.Time {
-	now := time.Now()
-	year, month, day := now.Date()
-	today := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
-	return today
-}
-
-func findTodayStage(race *pcsscraper.Race) (*pcsscraper.Stage, int) {
-	today := Today()
-	for i, stage := range race.Stages {
-		if stage.StartDate.AsTime() == today {
-			return stage, i + 1
-		}
-	}
-	return nil, 0
-}
-
-func raceIsFromThePast(race *pcsscraper.Race) bool {
-	return race.EndDate.AsTime().Before(Today())
-}
-
-func raceIsFromTheFuture(race *pcsscraper.Race) bool {
-	return race.StartDate.AsTime().After(Today())
-}
-
-func isSingleDayRace(race *pcsscraper.Race) bool {
-	return race.StartDate.AsTime() == race.EndDate.AsTime()
-}
-
-func areStageResultsAvailable(stage *pcsscraper.Stage) bool {
-	return stage.Result != nil && len(stage.Result) > 0
-}
 
 func GetRaceResult(race *pcsscraper.Race, riders []*pcsscraper.Rider) RaceResult {
 	if raceIsFromThePast(race) {
 		return buildPastRace(race, riders)
 	}
 	if raceIsFromTheFuture(race) {
-		return buildFutureRace()
+		return new(FutureRace)
 	}
 	if isSingleDayRace(race) {
 		if areStageResultsAvailable(race.Stages[0]) {
-			return buildSingleDayRaceWithResults(race, riders)
+			return &SingleDayRaceWithResults{
+				Top3: getTop3FromResult(race.Stages[0].Result, riders),
+			}
 		} else {
-			return buildSingleDayRaceWithoutResults()
+			return new(SingleDayRaceWithoutResults)
 		}
 	}
 	todayStage, stageNumber := findTodayStage(race)
 	if todayStage == nil {
-		return buildRestDayStage()
+		return new(RestDayStage)
 	}
 	if areStageResultsAvailable(todayStage) {
-		return buildMultiStageRaceWithResults(race, todayStage, stageNumber, riders)
+		return &MultiStageRaceWithResults{
+			Top3:        getTop3FromResult(todayStage.Result, riders),
+			GcTop3:      getTop3FromResult(race.Result, riders),
+			StageNumber: stageNumber,
+			IsLastStage: stageNumber == len(race.Stages),
+		}
 	}
-	return buildMultiStageRaceWithoutResults(stageNumber)
-}
-
-func raceIsActive(race *pcsscraper.Race) bool {
-	today := Today()
-	return (race.StartDate.AsTime() == today || race.StartDate.AsTime().Before(today)) &&
-		(race.EndDate.AsTime() == today || race.EndDate.AsTime().After(today))
+	return &MultiStageRaceWithoutResults{
+		StageNumber: stageNumber,
+	}
 }
 
 func GetActiveRaces(races []*pcsscraper.Race) []*pcsscraper.Race {
@@ -79,8 +48,18 @@ func GetActiveRaces(races []*pcsscraper.Race) []*pcsscraper.Race {
 	return activeRaces
 }
 
+func FindRace(races []*pcsscraper.Race, raceId string) *pcsscraper.Race {
+	var race *pcsscraper.Race
+	for _, r := range races {
+		if r.Id == raceId {
+			race = r
+		}
+	}
+	return race
+}
+
 func FindNextRace(races []*pcsscraper.Race) *pcsscraper.Race {
-	today := Today()
+	today := today()
 	for _, race := range races {
 		if race.StartDate.AsTime().After(today) {
 			return race
@@ -103,7 +82,7 @@ func GetRaceStageForDay(race *pcsscraper.Race, day time.Time) RaceStage {
 		}
 		return new(NoStage)
 	}
-	if stage.GetDeparture() == "" && stage.GetArrival() == "" && stage.GetDistance() == 0 && stage.GetType() == pcsscraper.Stage_TYPE_UNSPECIFIED {
+	if !stageContainsData(stage) {
 		return &StageWithoutData{
 			StartDate: stage.StartDate,
 		}
@@ -127,7 +106,7 @@ func GetRaceStageForIndex(race *pcsscraper.Race, index int) RaceStage {
 	if stage == nil {
 		return new(NoStage)
 	}
-	if stage.GetDeparture() == "" && stage.GetArrival() == "" && stage.GetDistance() == 0 && stage.GetType() == pcsscraper.Stage_TYPE_UNSPECIFIED {
+	if !stageContainsData(stage) {
 		return &StageWithoutData{
 			StartDate: stage.GetStartDate(),
 		}
@@ -141,12 +120,8 @@ func GetRaceStageForIndex(race *pcsscraper.Race, index int) RaceStage {
 	}
 }
 
-func buildSingleDayRaceWithoutResults() *SingleDayRaceWithoutResults {
-	return new(SingleDayRaceWithoutResults)
-}
-
-func buildRestDayStage() *RestDayStage {
-	return new(RestDayStage)
+func stageContainsData(stage *pcsscraper.Stage) bool {
+	return (stage.GetDeparture() != "" && stage.GetArrival() != "") || stage.GetDistance() > 0 || stage.GetType() != pcsscraper.Stage_TYPE_UNSPECIFIED
 }
 
 func buildPastRace(race *pcsscraper.Race, riders []*pcsscraper.Rider) *PastRace {
@@ -181,86 +156,41 @@ func getTop3FromResult(result []*pcsscraper.RiderResult, riders []*pcsscraper.Ri
 	}
 }
 
-func buildFutureRace() *FutureRace {
-	return new(FutureRace)
+func raceIsActive(race *pcsscraper.Race) bool {
+	today := today()
+	return (race.StartDate.AsTime() == today || race.StartDate.AsTime().Before(today)) &&
+		(race.EndDate.AsTime() == today || race.EndDate.AsTime().After(today))
 }
 
-func buildSingleDayRaceWithResults(race *pcsscraper.Race, riders []*pcsscraper.Rider) *SingleDayRaceWithResults {
-	return &SingleDayRaceWithResults{
-		Top3: getTop3FromResult(race.Stages[0].Result, riders),
+func findTodayStage(race *pcsscraper.Race) (*pcsscraper.Stage, int) {
+	today := today()
+	for i, stage := range race.Stages {
+		if stage.StartDate.AsTime() == today {
+			return stage, i + 1
+		}
 	}
+	return nil, 0
 }
 
-func buildMultiStageRaceWithResults(race *pcsscraper.Race, stage *pcsscraper.Stage, stageNumber int, riders []*pcsscraper.Rider) *MultiStageRaceWithResults {
-	return &MultiStageRaceWithResults{
-		Top3:        getTop3FromResult(stage.Result, riders),
-		GcTop3:      getTop3FromResult(race.Result, riders),
-		StageNumber: stageNumber,
-		IsLastStage: stageNumber == len(race.Stages),
-	}
+func raceIsFromThePast(race *pcsscraper.Race) bool {
+	return race.EndDate.AsTime().Before(today())
 }
 
-func buildMultiStageRaceWithoutResults(stageNumber int) *MultiStageRaceWithoutResults {
-	return &MultiStageRaceWithoutResults{
-		StageNumber: stageNumber,
-	}
+func raceIsFromTheFuture(race *pcsscraper.Race) bool {
+	return race.StartDate.AsTime().After(today())
 }
 
-type RaceResult interface {
-	isRaceResult()
+func isSingleDayRace(race *pcsscraper.Race) bool {
+	return race.StartDate.AsTime() == race.EndDate.AsTime()
 }
 
-type PastRace struct{ GcTop3 *Top3 }
-type FutureRace struct{}
-type RestDayStage struct{}
-type SingleDayRaceWithResults struct{ Top3 *Top3 }
-type SingleDayRaceWithoutResults struct{}
-type MultiStageRaceWithResults struct {
-	StageNumber int
-	Top3        *Top3
-	GcTop3      *Top3
-	IsLastStage bool
-}
-type MultiStageRaceWithoutResults struct {
-	StageNumber int
+func areStageResultsAvailable(stage *pcsscraper.Stage) bool {
+	return stage.Result != nil && len(stage.Result) > 0
 }
 
-type Top3 struct {
-	First  *RiderResult
-	Second *RiderResult
-	Third  *RiderResult
+func today() time.Time {
+	now := time.Now()
+	year, month, day := now.Date()
+	today := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
+	return today
 }
-
-type RiderResult struct {
-	Rider *pcsscraper.Rider
-	Time  int64
-}
-
-func (_ PastRace) isRaceResult()                     {}
-func (_ FutureRace) isRaceResult()                   {}
-func (_ RestDayStage) isRaceResult()                 {}
-func (_ SingleDayRaceWithResults) isRaceResult()     {}
-func (_ SingleDayRaceWithoutResults) isRaceResult()  {}
-func (_ MultiStageRaceWithResults) isRaceResult()    {}
-func (_ MultiStageRaceWithoutResults) isRaceResult() {}
-
-type RaceStage interface {
-	isRaceStage()
-}
-
-type NoStage struct{}
-type StageWithData struct {
-	Departure string
-	Arrival   string
-	Distance  float32
-	Type      pcsscraper.Stage_Type
-	StartDate *timestamppb.Timestamp
-}
-type StageWithoutData struct {
-	StartDate *timestamppb.Timestamp
-}
-
-func (_ RestDayStage) isRaceStage()     {}
-func (_ NoStage) isRaceStage()          {}
-func (_ StageWithData) isRaceStage()    {}
-func (_ StageWithoutData) isRaceStage() {}

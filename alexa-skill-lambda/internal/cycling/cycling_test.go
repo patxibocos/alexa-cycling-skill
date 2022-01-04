@@ -11,7 +11,7 @@ import (
 const Day = 24 * time.Hour
 
 func TestPastRace(t *testing.T) {
-	yesterday := Today().Add(-1 * Day)
+	yesterday := today().Add(-1 * Day)
 	race := &pcsscraper.Race{
 		StartDate: timestamppb.New(yesterday),
 		EndDate:   timestamppb.New(yesterday),
@@ -31,8 +31,8 @@ func TestPastRace(t *testing.T) {
 }
 
 func TestFutureRace(t *testing.T) {
-	tomorrow := Today().Add(1 * Day)
-	dayAfterTomorrow := Today().Add(2 * Day)
+	tomorrow := today().Add(1 * Day)
+	dayAfterTomorrow := today().Add(2 * Day)
 	race := &pcsscraper.Race{
 		StartDate: timestamppb.New(tomorrow),
 		EndDate:   timestamppb.New(dayAfterTomorrow),
@@ -44,7 +44,7 @@ func TestFutureRace(t *testing.T) {
 }
 
 func TestMultiStageRaceWithoutResults(t *testing.T) {
-	today := Today()
+	today := today()
 	yesterday := today.Add(-1 * Day)
 	race := &pcsscraper.Race{
 		StartDate: timestamppb.New(yesterday),
@@ -63,7 +63,7 @@ func TestMultiStageRaceWithoutResults(t *testing.T) {
 }
 
 func TestMultiStageRaceWithResults(t *testing.T) {
-	today := Today()
+	today := today()
 	yesterday := today.Add(-1 * Day)
 	race := &pcsscraper.Race{
 		StartDate: timestamppb.New(yesterday),
@@ -95,7 +95,7 @@ func TestMultiStageRaceWithResults(t *testing.T) {
 }
 
 func TestSingleDayRaceWithoutResults(t *testing.T) {
-	today := Today()
+	today := today()
 	race := &pcsscraper.Race{
 		StartDate: timestamppb.New(today),
 		EndDate:   timestamppb.New(today),
@@ -110,7 +110,7 @@ func TestSingleDayRaceWithoutResults(t *testing.T) {
 }
 
 func TestSingleDayRaceWithResults(t *testing.T) {
-	today := Today()
+	today := today()
 	race := &pcsscraper.Race{
 		StartDate: timestamppb.New(today),
 		EndDate:   timestamppb.New(today),
@@ -133,8 +133,8 @@ func TestSingleDayRaceWithResults(t *testing.T) {
 }
 
 func TestRestDayStage(t *testing.T) {
-	yesterday := Today().Add(-1 * Day)
-	tomorrow := Today().Add(1 * Day)
+	yesterday := today().Add(-1 * Day)
+	tomorrow := today().Add(1 * Day)
 	race := &pcsscraper.Race{
 		StartDate: timestamppb.New(yesterday),
 		EndDate:   timestamppb.New(tomorrow),
@@ -147,8 +147,8 @@ func TestRestDayStage(t *testing.T) {
 }
 
 func TestFindNextRaceNotFound(t *testing.T) {
-	yesterday := timestamppb.New(Today().Add(-1 * Day))
-	today := timestamppb.New(Today())
+	yesterday := timestamppb.New(today().Add(-1 * Day))
+	today := timestamppb.New(today())
 	races := []*pcsscraper.Race{
 		{StartDate: yesterday},
 		{StartDate: today},
@@ -160,7 +160,7 @@ func TestFindNextRaceNotFound(t *testing.T) {
 }
 
 func TestFindNextRaceIsFound(t *testing.T) {
-	tomorrow := timestamppb.New(Today().Add(1 * Day))
+	tomorrow := timestamppb.New(today().Add(1 * Day))
 	races := []*pcsscraper.Race{
 		{StartDate: tomorrow},
 	}
@@ -171,9 +171,9 @@ func TestFindNextRaceIsFound(t *testing.T) {
 }
 
 func TestGetActiveRaces(t *testing.T) {
-	yesterday := Today().Add(-1 * Day)
-	tomorrow := Today().Add(1 * Day)
-	today := Today()
+	yesterday := today().Add(-1 * Day)
+	tomorrow := today().Add(1 * Day)
+	today := today()
 	races := []*pcsscraper.Race{
 		{StartDate: timestamppb.New(yesterday), EndDate: timestamppb.New(today)},
 		{StartDate: timestamppb.New(today), EndDate: timestamppb.New(today)},
@@ -186,8 +186,8 @@ func TestGetActiveRaces(t *testing.T) {
 }
 
 func TestNoStage(t *testing.T) {
-	tomorrow := Today().Add(1 * Day)
-	today := Today()
+	tomorrow := today().Add(1 * Day)
+	today := today()
 	race := &pcsscraper.Race{Stages: []*pcsscraper.Stage{{StartDate: timestamppb.New(tomorrow)}}}
 
 	raceStage := GetRaceStageForDay(race, today)
@@ -196,9 +196,9 @@ func TestNoStage(t *testing.T) {
 }
 
 func TestRestDay(t *testing.T) {
-	yesterday := Today().Add(-1 * Day)
-	tomorrow := Today().Add(1 * Day)
-	today := Today()
+	yesterday := today().Add(-1 * Day)
+	tomorrow := today().Add(1 * Day)
+	today := today()
 	race := &pcsscraper.Race{
 		StartDate: timestamppb.New(yesterday),
 		EndDate:   timestamppb.New(tomorrow),
@@ -211,7 +211,7 @@ func TestRestDay(t *testing.T) {
 }
 
 func TestStageWithoutData(t *testing.T) {
-	today := Today()
+	today := today()
 	race := &pcsscraper.Race{Stages: []*pcsscraper.Stage{{StartDate: timestamppb.New(today)}}}
 
 	raceStage := GetRaceStageForDay(race, today)
@@ -220,7 +220,7 @@ func TestStageWithoutData(t *testing.T) {
 }
 
 func TestStageWithData(t *testing.T) {
-	today := Today()
+	today := today()
 	bilbao := "Bilbao"
 	barcelona := "Barcelona"
 	race := &pcsscraper.Race{Stages: []*pcsscraper.Stage{{
