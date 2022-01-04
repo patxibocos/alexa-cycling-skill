@@ -9,8 +9,6 @@ import (
 	"time"
 )
 
-const version = "1.0"
-const plainText = "PlainText"
 const questionAttribute = "question"
 const raceAttribute = "race"
 const dayAttribute = "day"
@@ -141,6 +139,12 @@ func handleNumberStageInfo(request Request, cyclingData *pcsscraper.CyclingData)
 
 func handleNo(_ Request, _ *pcsscraper.CyclingData) Response {
 	return newResponse().shouldEndSession(true).text("")
+}
+
+func handleHelp(_ Request, _ *pcsscraper.CyclingData) Response {
+	return newResponse().
+		shouldEndSession(true).
+		text("Me puedes preguntar por cuándo empieza o cómo va una carrera. También te puedo dar información sobre una etapa en particular. Qué quieres saber?")
 }
 
 func handleYes(request Request, cyclingData *pcsscraper.CyclingData) Response {

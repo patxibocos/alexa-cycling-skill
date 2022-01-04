@@ -1,5 +1,8 @@
 package alexa
 
+const version = "1.0"
+const plainText = "PlainText"
+
 type Response struct {
 	Version           string                 `json:"version"`
 	SessionAttributes map[string]interface{} `json:"sessionAttributes,omitempty"`
