@@ -7,32 +7,6 @@ type Request struct {
 	Context Context `json:"context"`
 }
 
-type Response struct {
-	Version           string                 `json:"version"`
-	SessionAttributes map[string]interface{} `json:"sessionAttributes,omitempty"`
-	Body              ResBody                `json:"response"`
-}
-
-type ResBody struct {
-	OutputSpeech     *OutputSpeech `json:"outputSpeech,omitempty"`
-	Card             *Card         `json:"card,omitempty"`
-	ShouldEndSession bool          `json:"shouldEndSession"`
-}
-
-type Card struct {
-	Type    string `json:"type,omitempty"`
-	Title   string `json:"title,omitempty"`
-	Content string `json:"content,omitempty"`
-	Text    string `json:"text,omitempty"`
-}
-
-type OutputSpeech struct {
-	Type         string `json:"type,omitempty"`
-	Text         string `json:"text,omitempty"`
-	SSML         string `json:"ssml,omitempty"`
-	PlayBehavior string `json:"playBehavior,omitempty"`
-}
-
 type Session struct {
 	New         bool                   `json:"new"`
 	SessionID   string                 `json:"sessionId"`

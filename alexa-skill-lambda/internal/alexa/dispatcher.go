@@ -5,7 +5,6 @@ import (
 )
 
 var intentRouting = map[string]func(Request, *pcsscraper.CyclingData) Response{
-	"LaunchRequest":    handleLaunchRequest,
 	"RaceResult":       handleRaceResult,
 	"DayStageInfo":     handleDayStageInfo,
 	"NumberStageInfo":  handleNumberStageInfo,
@@ -20,14 +19,5 @@ func RequestHandler(request Request, cyclingData *pcsscraper.CyclingData) Respon
 	if handler, ok := intentRouting[request.Body.Intent.Name]; ok {
 		return handler(request, cyclingData)
 	}
-	return Response{
-		Version: "1.0",
-		Body: ResBody{
-			OutputSpeech: &OutputSpeech{
-				Type: "PlainText",
-				Text: "",
-			},
-			ShouldEndSession: true,
-		},
-	}
+	return newResponse().shouldEndSession(true)
 }
