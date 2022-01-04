@@ -143,8 +143,16 @@ func handleNo(_ Request, _ *pcsscraper.CyclingData) Response {
 
 func handleHelp(_ Request, _ *pcsscraper.CyclingData) Response {
 	return newResponse().
-		shouldEndSession(true).
+		shouldEndSession(false).
 		text("Me puedes preguntar por cuándo empieza o cómo va una carrera. También te puedo dar información sobre una etapa en particular. Qué quieres saber?")
+}
+
+func handleStop(_ Request, _ *pcsscraper.CyclingData) Response {
+	return newResponse().shouldEndSession(true).text("¡Adios!")
+}
+
+func handleCancel(_ Request, _ *pcsscraper.CyclingData) Response {
+	return newResponse().shouldEndSession(true).text("¡Adios!")
 }
 
 func handleYes(request Request, cyclingData *pcsscraper.CyclingData) Response {

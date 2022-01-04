@@ -5,12 +5,14 @@ import (
 )
 
 var intentRouting = map[string]func(Request, *pcsscraper.CyclingData) Response{
-	"RaceResult":        handleRaceResult,
-	"DayStageInfo":      handleDayStageInfo,
-	"NumberStageInfo":   handleNumberStageInfo,
-	"AMAZON.YesIntent":  handleYes,
-	"AMAZON.NoIntent":   handleNo,
-	"AMAZON.HelpIntent": handleHelp,
+	"RaceResult":          handleRaceResult,
+	"DayStageInfo":        handleDayStageInfo,
+	"NumberStageInfo":     handleNumberStageInfo,
+	"AMAZON.YesIntent":    handleYes,
+	"AMAZON.NoIntent":     handleNo,
+	"AMAZON.HelpIntent":   handleHelp,
+	"AMAZON.CancelIntent": handleCancel,
+	"AMAZON.StopIntent":   handleStop,
 }
 
 func RequestHandler(request Request, cyclingData *pcsscraper.CyclingData) Response {
