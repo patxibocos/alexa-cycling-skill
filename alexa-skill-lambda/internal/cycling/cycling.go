@@ -12,7 +12,7 @@ func GetRaceResult(race *pcsscraper.Race, riders []*pcsscraper.Rider) RaceResult
 	if raceIsFromTheFuture(race) {
 		return new(FutureRace)
 	}
-	if isSingleDayRace(race) {
+	if IsSingleDayRace(race) {
 		if areStageResultsAvailable(race.Stages[0]) {
 			return &SingleDayRaceWithResults{
 				Top3: getTop3FromResult(race.Stages[0].Result, riders),
@@ -82,7 +82,7 @@ func GetRaceStageForDay(race *pcsscraper.Race, day time.Time) RaceStage {
 		}
 		return new(NoStage)
 	}
-	if !stageContainsData(stage) {
+	if !StageContainsData(stage) {
 		return &StageWithoutData{
 			StartDate: stage.StartDate,
 		}
@@ -106,7 +106,7 @@ func GetRaceStageForIndex(race *pcsscraper.Race, index int) RaceStage {
 	if stage == nil {
 		return new(NoStage)
 	}
-	if !stageContainsData(stage) {
+	if !StageContainsData(stage) {
 		return &StageWithoutData{
 			StartDate: stage.GetStartDate(),
 		}
@@ -120,7 +120,7 @@ func GetRaceStageForIndex(race *pcsscraper.Race, index int) RaceStage {
 	}
 }
 
-func stageContainsData(stage *pcsscraper.Stage) bool {
+func StageContainsData(stage *pcsscraper.Stage) bool {
 	return (stage.GetDeparture() != "" && stage.GetArrival() != "") || stage.GetDistance() > 0 || stage.GetType() != pcsscraper.Stage_TYPE_UNSPECIFIED
 }
 
@@ -180,7 +180,7 @@ func raceIsFromTheFuture(race *pcsscraper.Race) bool {
 	return race.StartDate.AsTime().After(today())
 }
 
-func isSingleDayRace(race *pcsscraper.Race) bool {
+func IsSingleDayRace(race *pcsscraper.Race) bool {
 	return race.StartDate.AsTime() == race.EndDate.AsTime()
 }
 
