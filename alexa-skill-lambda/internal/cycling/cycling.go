@@ -30,12 +30,15 @@ func GetRaceResult(race *pcsscraper.Race, riders []*pcsscraper.Rider) RaceResult
 			Top3:        getTop3FromResult(todayStage.Result, riders),
 			GcTop3:      getTop3FromResult(race.Result, riders),
 			StageNumber: stageNumber,
-			IsLastStage: stageNumber == len(race.Stages),
 		}
 	}
 	return &MultiStageRaceWithoutResults{
 		StageNumber: stageNumber,
 	}
+}
+
+func IsLastRaceStage(race *pcsscraper.Race, stageNumber int) bool {
+	return stageNumber == len(race.Stages)
 }
 
 func GetActiveRaces(races []*pcsscraper.Race) []*pcsscraper.Race {

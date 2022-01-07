@@ -90,7 +90,6 @@ func TestMultiStageRaceWithResults(t *testing.T) {
 			Third:  &RiderResult{Rider: riders[2]},
 		},
 		StageNumber: 2,
-		IsLastStage: true,
 	}, raceResult)
 }
 

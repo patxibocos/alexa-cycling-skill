@@ -1,0 +1,111 @@
+[RaceStageRestDay]
+other = "Los corredores tienen descanso"
+
+[RaceStageMissing]
+other = "No hay etapa para ese día"
+
+[RaceStageNoData]
+other = "Aún no hay información disponible de la etapa"
+
+[StageDataDepartureArrival]
+other = "El recorrido va de {{.Departure}} a {{.Arrival}}"
+
+[StageDataDistance]
+other = "Tiene una distancia de {{.Distance}} kilómetros"
+
+[StageDataType]
+other = "El perfil de la etapa es {{.Type}}"
+
+[RaceResultPast]
+other = "{{.Race}} terminó el {{.EndDate}}. El ganador fue {{.First}}, segundo {{.Second}} y tercero {{.Third}}"
+
+[RaceResultFuture]
+other = "{{.Race}} no empieza hasta el {{.StartDate}}"
+
+[RaceResultRestDay]
+other = "Hoy es día de descanso en {{.Race}}"
+
+[RaceResultSingleDayWithResults]
+other = "Hoy se ha disputado {{.Race}}. El ganador ha sido {{.First}}, segundo {{.Second}} y tercero {{.Third}}"
+
+[RaceResultSingleDayWithoutResults]
+other = "Hoy se disputa {{.Race}} pero todavía no tengo los resultados. Vuelve a preguntarme en un rato"
+
+[RaceResultMultiStageWithResults]
+other = "Hoy se ha disputado la {{.StageName}} etapa de {{.Race}}. El ganador ha sido {{.First}}, segundo {{.Second}} y tercero {{.Third}}"
+
+[RaceResultGeneralClassification]
+other = "En la clasificación queda primero {{.First}}, segundo {{.GapFromFirstToSecond}} {{.Second}} y tercero {{.GapFromSecondToThird}} {{.Third}}"
+
+[FirstStage]
+other = "primera"
+
+[LastStage]
+other = "última"
+
+[NumberStage]
+other = "{{.Number}}ª"
+
+[GapSameTime]
+other = "con el mismo tiempo"
+
+[GapSeconds]
+one = "a {{.Seconds}} segundo"
+other = "a {{.Seconds}} segundos"
+
+[GapMinutes]
+one = "a {{.Minutes}} minuto"
+other = "a {{.Minutes}} minutos"
+
+[GapAndSeconds]
+one = "y {{.Seconds}} segundo"
+other = "y {{.Seconds}} segundos"
+
+[RaceResultMultiStageWithoutResults]
+other = "Hoy se disputa la {{.StageName}} etapa de {{.Race}} pero todavía no tengo los resultados. Vuelve a preguntarme en un rato"
+
+[TomorrowStageQuestion]
+other = "¿Quieres saber cómo es la etapa de mañana?"
+
+[SingleStageQuestion]
+other = "¿Quieres saber cómo será la etapa?"
+
+[FistStageQuestion]
+other = "¿Quieres saber cómo será la primera etapa?"
+
+[NoActiveRace]
+other = "No hay ninguna carrera activa ahora mismo"
+
+[SeasonEnded]
+other = "La temporada ha acabado"
+
+[NextRaceStart]
+other = "La siguiente carrera es {{.Race}} y se disputa el {{.StartDate}}"
+
+[RaceStages]
+one = "{{.Race}} sólo tiene una etapa"
+other = "{{.Race}} sólo tiene {{.Stages}} etapas"
+
+[NoDataForStage]
+other = "La etapa comienza el {{.StartDate}} pero aún no hay información disponible"
+
+[Help]
+other = "Me puedes preguntar por cuándo empieza o cómo va una carrera. También te puedo dar información sobre una etapa en particular. ¿Qué quieres saber?"
+
+[Goodbye]
+other = "¡Adios!"
+
+[StageTypeFlat]
+other = "llano"
+
+[StageTypeHillsFlatFinish]
+other = "de media montaña con final llano"
+
+[StageTypeHillsUphillFinish]
+other = "de media montaña con final en alto"
+
+[StageTypeMountainsFlatFinish]
+other = "de montaña con final llano"
+
+[StageTypeMountainsUphillFinish]
+other = "de montaña con final en alto"

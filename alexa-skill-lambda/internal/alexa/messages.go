@@ -1,98 +1,197 @@
 package alexa
 
 import (
-	"fmt"
 	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/internal/cycling"
 	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/pcsscraper"
 	"strconv"
 	"strings"
 )
 
-func messageForRaceStage(raceStage cycling.RaceStage) string {
-	var message string
+func messageForRaceStage(localizer i18nLocalizer, raceStage cycling.RaceStage) string {
 	switch rs := raceStage.(type) {
 	case *cycling.RestDayStage:
-		message = "Los corredores tienen descanso"
+		return localizer.localize(localizeParams{key: "RaceStageRestDay"})
 	case *cycling.NoStage:
-		message = "No hay etapa para ese día"
+		return localizer.localize(localizeParams{key: "RaceStageMissing"})
 	case *cycling.StageWithData:
-		message = messageForStageWithData(rs)
+		return messageForStageWithData(localizer, rs)
 	case *cycling.StageWithoutData:
-		message = "Aún no hay información disponible de la etapa"
+		return localizer.localize(localizeParams{key: "RaceStageNoData"})
 	}
-	return message
+	return ""
 }
 
-func messageForStageWithData(stageWithData *cycling.StageWithData) string {
+func messageForStageWithData(localizer i18nLocalizer, stageWithData *cycling.StageWithData) string {
 	var messages []string
 	if stageWithData.Departure != "" && stageWithData.Arrival != "" {
-		messages = append(messages, fmt.Sprintf("El recorrido va de %s a %s", stageWithData.Departure, stageWithData.Arrival))
+		message := localizer.localize(localizeParams{
+			key:  "StageDataDepartureArrival",
+			data: map[string]interface{}{"Departure": stageWithData.Departure, "Arrival": stageWithData.Arrival},
+		})
+		messages = append(messages, message)
 	}
 	if stageWithData.Distance > 0 {
 		formattedDistance := strconv.FormatFloat(float64(stageWithData.Distance), 'f', -1, 32)
-		messages = append(messages, fmt.Sprintf("Tiene una distancia de %s kilómetros", formattedDistance))
+		message := localizer.localize(localizeParams{
+			key:  "StageDataDistance",
+			data: map[string]interface{}{"Distance": formattedDistance},
+		})
+		messages = append(messages, message)
 	}
 	if stageWithData.Type != pcsscraper.Stage_TYPE_UNSPECIFIED {
-		messages = append(messages, fmt.Sprintf("El perfil de la etapa es %s", stageType(stageWithData.Type)))
+		message := localizer.localize(localizeParams{
+			key:  "StageDataType",
+			data: map[string]interface{}{"Type": messageForStageType(localizer, stageWithData.Type)},
+		})
+		messages = append(messages, message)
 	}
 	return strings.Join(messages, ". ")
 }
 
-func messageForRaceResult(race *pcsscraper.Race, raceResult cycling.RaceResult) string {
+func messageForRaceResult(localizer i18nLocalizer, race *pcsscraper.Race, raceResult cycling.RaceResult) string {
 	raceName := raceName(race.Id)
 	switch ri := raceResult.(type) {
 	case *cycling.PastRace:
-		return fmt.Sprintf(
-			"%s terminó el %s. %s",
-			raceName,
-			formattedDate(race.EndDate.AsTime()),
-			phraseWithTop3("El ganador fue %s, segundo %s y tercero %s", ri.GcTop3),
-		)
+		return localizer.localize(localizeParams{
+			key: "RaceResultPast",
+			data: map[string]interface{}{
+				"Race":    raceName,
+				"EndDate": formattedDate(race.EndDate.AsTime()),
+				"First":   riderFullName(ri.GcTop3.First.Rider),
+				"Second":  riderFullName(ri.GcTop3.Second.Rider),
+				"Third":   riderFullName(ri.GcTop3.Third.Rider),
+			},
+		})
 	case *cycling.FutureRace:
-		return fmt.Sprintf(
-			"%s no empieza hasta el %s",
-			raceName,
-			formattedDate(race.StartDate.AsTime()),
-		)
+		return localizer.localize(localizeParams{
+			key: "RaceResultFuture",
+			data: map[string]interface{}{
+				"Race":      raceName,
+				"StartDate": formattedDate(race.StartDate.AsTime()),
+			},
+		})
 	case *cycling.RestDayStage:
-		return fmt.Sprintf(
-			"Hoy es día de descanso en %s",
-			raceName,
-		)
+		return localizer.localize(localizeParams{
+			key: "RaceResultRestDay",
+			data: map[string]interface{}{
+				"Race": raceName,
+			},
+		})
 	case *cycling.SingleDayRaceWithResults:
-		return fmt.Sprintf(
-			"Hoy se ha disputado %s. %s",
-			raceName,
-			phraseWithTop3("El ganador ha sido %s, segundo %s y tercero %s", ri.Top3),
-		)
+		return localizer.localize(localizeParams{
+			key: "RaceResultSingleDayWithResults",
+			data: map[string]interface{}{
+				"Race":   raceName,
+				"First":  riderFullName(ri.Top3.First.Rider),
+				"Second": riderFullName(ri.Top3.Second.Rider),
+				"Third":  riderFullName(ri.Top3.Third.Rider),
+			},
+		})
 	case *cycling.SingleDayRaceWithoutResults:
-		return fmt.Sprintf(
-			"Hoy se disputa %s pero todavía no tengo los resultados. Vuelve a preguntarme en un rato",
-			raceName,
-		)
+		return localizer.localize(localizeParams{
+			key: "RaceResultSingleDayWithoutResults",
+			data: map[string]interface{}{
+				"Race": raceName,
+			},
+		})
 	case *cycling.MultiStageRaceWithResults: // If stageNumber is greater than 1 -> return GC. If it is the last stage -> announce race has ended
-		var stageName string
-		if ri.IsLastStage {
-			stageName = "última"
-		} else {
-			stageName = fmt.Sprintf("%dª", ri.StageNumber)
-		}
-		message := fmt.Sprintf(
-			"Hoy se ha disputado la %s etapa de %s. %s",
-			stageName,
-			raceName,
-			phraseWithTop3("El ganador ha sido %s, segundo %s y tercero %s", ri.Top3),
-		)
+		stageName := messageForStageName(localizer, race, ri.StageNumber)
+		message := localizer.localize(localizeParams{
+			key: "RaceResultMultiStageWithResults",
+			data: map[string]interface{}{
+				"StageName": stageName,
+				"Race":      raceName,
+				"First":     riderFullName(ri.Top3.First.Rider),
+				"Second":    riderFullName(ri.Top3.Second.Rider),
+				"Third":     riderFullName(ri.Top3.Third.Rider),
+			},
+		})
 		if ri.StageNumber > 1 {
-			message += phraseWithTop3AndGaps(". En la clasificación queda primero %s, segundo %s %s y tercero %s %s", ri.GcTop3)
+			message += localizer.localize(localizeParams{
+				key: "RaceResultGeneralClassification",
+				data: map[string]interface{}{
+					"First":                riderFullName(ri.GcTop3.First.Rider),
+					"Second":               riderFullName(ri.GcTop3.Second.Rider),
+					"Third":                riderFullName(ri.GcTop3.Third.Rider),
+					"GapFromFirstToSecond": messageForGap(localizer, ri.GcTop3.Second.Time-ri.GcTop3.First.Time),
+					"GapFromSecondToThird": messageForGap(localizer, ri.GcTop3.Third.Time-ri.GcTop3.Second.Time),
+				},
+			})
 		}
 		return message
 	case *cycling.MultiStageRaceWithoutResults:
-		return fmt.Sprintf(
-			"Hoy se disputa la %dª etapa de %s pero todavía no tengo los resultados. Vuelve a preguntarme en un rato",
-			ri.StageNumber,
-			raceName,
-		)
+		stageName := messageForStageName(localizer, race, ri.StageNumber)
+		return localizer.localize(localizeParams{
+			key: "RaceResultMultiStageWithoutResults",
+			data: map[string]interface{}{
+				"StageName": stageName,
+				"Race":      raceName,
+			},
+		})
 	}
 	return ""
+}
+
+func messageForStageName(localizer i18nLocalizer, race *pcsscraper.Race, stageNumber int) string {
+	var stageName string
+	if stageNumber == 1 {
+		stageName = localizer.localize(localizeParams{key: "FirstStage"})
+	} else if cycling.IsLastRaceStage(race, stageNumber) {
+		stageName = localizer.localize(localizeParams{key: "LastStage"})
+	} else {
+		stageName = localizer.localize(localizeParams{key: "NumberStage", data: map[string]interface{}{"Number": stageNumber}})
+	}
+	return stageName
+}
+
+func messageForStageType(localizer i18nLocalizer, stageType pcsscraper.Stage_Type) string {
+	var messageKey string
+	switch stageType {
+	case stageType:
+	case pcsscraper.Stage_TYPE_FLAT:
+		messageKey = "StageTypeFlat"
+	case pcsscraper.Stage_TYPE_HILLS_FLAT_FINISH:
+		messageKey = "StageTypeHillsFlatFinish"
+	case pcsscraper.Stage_TYPE_HILLS_UPHILL_FINISH:
+		messageKey = "StageTypeHillsUphillFinish"
+	case pcsscraper.Stage_TYPE_MOUNTAINS_FLAT_FINISH:
+		messageKey = "StageTypeMountainsFlatFinish"
+	case pcsscraper.Stage_TYPE_MOUNTAINS_UPHILL_FINISH:
+		messageKey = "StageTypeMountainsUphillFinish"
+	}
+	return localizer.localize(localizeParams{key: messageKey})
+}
+
+func messageForGap(localizer i18nLocalizer, gap int64) string {
+	if gap == 0 {
+		return localizer.localize(localizeParams{key: "GapSameTime"})
+	}
+	if gap < 60 {
+		return localizer.localize(localizeParams{
+			key: "GapSeconds",
+			data: map[string]interface{}{
+				"Seconds": gap,
+			},
+			pluralCount: gap,
+		})
+	}
+	minutes := gap / 60
+	seconds := gap % 60
+	message := localizer.localize(localizeParams{
+		key: "GapMinutes",
+		data: map[string]interface{}{
+			"Minutes": minutes,
+		},
+		pluralCount: minutes,
+	})
+	if seconds > 0 {
+		message += localizer.localize(localizeParams{
+			key: "GapAndSeconds",
+			data: map[string]interface{}{
+				"Seconds": seconds,
+			},
+			pluralCount: seconds,
+		})
+	}
+	return message
 }

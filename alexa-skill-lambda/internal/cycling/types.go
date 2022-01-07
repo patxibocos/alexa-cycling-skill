@@ -22,7 +22,6 @@ type MultiStageRaceWithResults struct {
 	StageNumber int
 	Top3        *Top3
 	GcTop3      *Top3
-	IsLastStage bool
 }
 type MultiStageRaceWithoutResults struct {
 	StageNumber int

@@ -2,7 +2,6 @@ package alexa
 
 import (
 	"fmt"
-	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/internal/cycling"
 	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/pcsscraper"
 	"strings"
 	"time"
@@ -58,14 +57,6 @@ var (
 		"il-lombardia-2022":                     "El Giro de Lombardía",
 		"tour-of-guangxi-2022":                  "El Tour de Guangxi",
 	}
-
-	stageTypeToText = map[pcsscraper.Stage_Type]string{
-		pcsscraper.Stage_TYPE_FLAT:                    "llano",
-		pcsscraper.Stage_TYPE_HILLS_FLAT_FINISH:       "de media montaña con final llano",
-		pcsscraper.Stage_TYPE_HILLS_UPHILL_FINISH:     "de media montaña con final en alto",
-		pcsscraper.Stage_TYPE_MOUNTAINS_FLAT_FINISH:   "de montaña con final llano",
-		pcsscraper.Stage_TYPE_MOUNTAINS_UPHILL_FINISH: "de montaña con final en alto",
-	}
 )
 
 func riderFullName(rider *pcsscraper.Rider) string {
@@ -78,55 +69,4 @@ func formattedDate(time time.Time) string {
 
 func raceName(raceID string) string {
 	return raceIDToName[raceID]
-}
-
-func stageType(stageType pcsscraper.Stage_Type) string {
-	return stageTypeToText[stageType]
-}
-
-func phraseWithTop3(phrase string, top3 *cycling.Top3) string {
-	return fmt.Sprintf(
-		phrase,
-		riderFullName(top3.First.Rider),
-		riderFullName(top3.Second.Rider),
-		riderFullName(top3.Third.Rider),
-	)
-}
-
-func singularOrPlural(word string, amount int64) string {
-	if amount == 1 {
-		return word
-	}
-	return word + "s"
-}
-
-func getGapMessage(gap int64) string {
-	if gap == 0 {
-		return "con el mismo tiempo"
-	}
-	if gap < 60 {
-		return fmt.Sprintf("a %d %s", gap, singularOrPlural("segundo", gap))
-	}
-	minutes := gap / 60
-	seconds := gap % 60
-	message := fmt.Sprintf("a %d %s", minutes, singularOrPlural("minuto", minutes))
-	if seconds > 0 {
-		message += fmt.Sprintf(" y %d %s", seconds, singularOrPlural("segundo", seconds))
-	}
-	return message
-}
-
-func phraseWithTop3AndGaps(phrase string, top3 *cycling.Top3) string {
-	firstToSecondGap := top3.Second.Time - top3.First.Time
-	secondToThirdGap := top3.Third.Time - top3.Second.Time
-	firstToSecondMessage := getGapMessage(firstToSecondGap)
-	secondToThirdMessage := getGapMessage(secondToThirdGap)
-	return fmt.Sprintf(
-		phrase,
-		riderFullName(top3.First.Rider),
-		firstToSecondMessage,
-		riderFullName(top3.Second.Rider),
-		secondToThirdMessage,
-		riderFullName(top3.Third.Rider),
-	)
 }
