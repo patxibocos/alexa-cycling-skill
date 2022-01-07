@@ -147,7 +147,6 @@ func messageForStageName(localizer i18nLocalizer, race *pcsscraper.Race, stageNu
 func messageForStageType(localizer i18nLocalizer, stageType pcsscraper.Stage_Type) string {
 	var messageKey string
 	switch stageType {
-	case stageType:
 	case pcsscraper.Stage_TYPE_FLAT:
 		messageKey = "StageTypeFlat"
 	case pcsscraper.Stage_TYPE_HILLS_FLAT_FINISH:

@@ -6,7 +6,7 @@ require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/aws/aws-lambda-go v1.27.1
 	github.com/aws/aws-sdk-go v1.42.13
-	github.com/nicksnyder/go-i18n/v2 v2.1.2
+	github.com/nicksnyder/go-i18n/v2 v2.1.3-0.20210623235128-240abfe49857
 	github.com/stretchr/testify v1.6.1
 	golang.org/x/text v0.3.7
 	google.golang.org/protobuf v1.25.0

@@ -1,10 +1,14 @@
 package alexa
 
 import (
+	"embed"
 	"github.com/BurntSushi/toml"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
 )
+
+//go:embed data/active.*.toml
+var localeFS embed.FS
 
 type i18nLocalizer interface {
 	localize(params localizeParams) string
@@ -20,7 +24,7 @@ func newLocalizer(userLocale string) i18nLocalizer {
 	goi18nLocalizer := new(goi18nLocalizer)
 	bundle := i18n.NewBundle(language.Spanish)
 	bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
-	_, _ = bundle.LoadMessageFile("active.es.toml")
+	_, _ = bundle.LoadMessageFileFS(localeFS, "data/active.es.toml")
 	localizer := i18n.NewLocalizer(bundle, userLocale)
 	goi18nLocalizer.localizer = localizer
 	return goi18nLocalizer
