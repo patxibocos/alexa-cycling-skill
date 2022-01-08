@@ -13,6 +13,10 @@ type RaceStage interface {
 	isRaceStage()
 }
 
+type MountainsStage interface {
+	isMountainsStage()
+}
+
 type PastRace struct{ GcTop3 *Top3 }
 type FutureRace struct{}
 type RestDayStage struct{}
@@ -62,3 +66,16 @@ func (_ RestDayStage) isRaceStage()     {}
 func (_ NoStage) isRaceStage()          {}
 func (_ StageWithData) isRaceStage()    {}
 func (_ StageWithoutData) isRaceStage() {}
+
+type SingleDayRace struct{}
+type YesMountainsStage struct {
+	StageNumber int
+	StartDate   *timestamppb.Timestamp
+}
+type NoStageTypeData struct{}
+type NoMountainsStage struct{}
+
+func (_ SingleDayRace) isMountainsStage()     {}
+func (_ YesMountainsStage) isMountainsStage() {}
+func (_ NoStageTypeData) isMountainsStage()   {}
+func (_ NoMountainsStage) isMountainsStage()  {}

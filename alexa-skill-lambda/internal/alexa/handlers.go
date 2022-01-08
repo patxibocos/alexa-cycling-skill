@@ -144,6 +144,49 @@ func handleNumberStageInfo(request Request, localizer i18nLocalizer, cyclingData
 	return newResponse().shouldEndSession(true).text(message)
 }
 
+func handleMountainsStart(request Request, localizer i18nLocalizer, cyclingData *pcsscraper.CyclingData) Response {
+	intent := request.Body.Intent
+	raceSlot := intent.Slots[raceSlot]
+	raceId := raceSlot.Resolutions.ResolutionsPerAuthority[0].Values[0].Value.ID
+	race := cycling.FindRace(cyclingData.Races, raceId)
+	var message string
+	mountainsStage := cycling.FindMountainsStage(race)
+	raceName := raceName(raceId)
+	switch ms := mountainsStage.(type) {
+	case *cycling.SingleDayRace:
+		message = localizer.localize(localizeParams{
+			key: "MountainsSingleDayRace",
+			data: map[string]interface{}{
+				"Race":      raceName,
+				"StartDate": formattedDate(race.StartDate.AsTime()),
+			},
+		})
+	case *cycling.YesMountainsStage:
+		message = localizer.localize(localizeParams{
+			key: "MountainsStartAvailable",
+			data: map[string]interface{}{
+				"StartDate": formattedDate(ms.StartDate.AsTime()),
+				"Race":      raceName,
+			},
+		})
+	case *cycling.NoStageTypeData:
+		message = localizer.localize(localizeParams{
+			key: "MountainsNoTypeData",
+			data: map[string]interface{}{
+				"Race": raceName,
+			},
+		})
+	case *cycling.NoMountainsStage:
+		message = localizer.localize(localizeParams{
+			key: "MountainsNoStage",
+			data: map[string]interface{}{
+				"Race": raceName,
+			},
+		})
+	}
+	return newResponse().shouldEndSession(true).text(message)
+}
+
 func handleNo(_ Request, _ i18nLocalizer, _ *pcsscraper.CyclingData) Response {
 	return newResponse().shouldEndSession(true).text("")
 }

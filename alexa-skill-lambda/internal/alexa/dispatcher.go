@@ -8,6 +8,7 @@ var intentRouting = map[string]func(Request, i18nLocalizer, *pcsscraper.CyclingD
 	"RaceResult":          handleRaceResult,
 	"DayStageInfo":        handleDayStageInfo,
 	"NumberStageInfo":     handleNumberStageInfo,
+	"MountainsStart":      handleMountainsStart,
 	"AMAZON.YesIntent":    handleYes,
 	"AMAZON.NoIntent":     handleNo,
 	"AMAZON.HelpIntent":   handleHelp,

@@ -109,3 +109,15 @@ other = "de montaña con final llano"
 
 [StageTypeMountainsUphillFinish]
 other = "de montaña con final en alto"
+
+[MountainsSingleDayRace]
+other = "{{.Race}} se disputa el {{.StartDate}} y tiene una única etapa"
+
+[MountainsStartAvailable]
+other = "La primera etapa de montaña en {{.Race}} se disputará el {{.StartDate}}"
+
+[MountainsNoTypeData]
+other = "Aún no hay información disponible del perfil de las etapas para {{.Race}}"
+
+[MountainsNoStage]
+other = "No hay ninguna etapa de montaña en {{.Race}}"

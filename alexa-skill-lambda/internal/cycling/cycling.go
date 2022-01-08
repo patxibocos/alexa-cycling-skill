@@ -7,7 +7,7 @@ import (
 
 func GetRaceResult(race *pcsscraper.Race, riders []*pcsscraper.Rider) RaceResult {
 	if raceIsFromThePast(race) {
-		return buildPastRace(race, riders)
+		return &PastRace{GcTop3: getTop3FromResult(race.Result, riders)}
 	}
 	if raceIsFromTheFuture(race) {
 		return new(FutureRace)
@@ -71,6 +71,24 @@ func FindNextRace(races []*pcsscraper.Race) *pcsscraper.Race {
 	return nil
 }
 
+func FindMountainsStage(race *pcsscraper.Race) MountainsStage {
+	if IsSingleDayRace(race) {
+		return new(SingleDayRace)
+	}
+	for i, stage := range race.Stages {
+		if stage.Type == pcsscraper.Stage_TYPE_MOUNTAINS_FLAT_FINISH || stage.Type == pcsscraper.Stage_TYPE_MOUNTAINS_UPHILL_FINISH {
+			return &YesMountainsStage{
+				StageNumber: i + 1,
+				StartDate:   stage.StartDate,
+			}
+		}
+	}
+	if race.Stages[0].Type == pcsscraper.Stage_TYPE_UNSPECIFIED {
+		return new(NoStageTypeData)
+	}
+	return new(NoMountainsStage)
+}
+
 func GetRaceStageForDay(race *pcsscraper.Race, day time.Time) RaceStage {
 	var stage *pcsscraper.Stage
 	for _, s := range race.Stages {
@@ -125,12 +143,6 @@ func GetRaceStageForIndex(race *pcsscraper.Race, index int) RaceStage {
 
 func StageContainsData(stage *pcsscraper.Stage) bool {
 	return (stage.GetDeparture() != "" && stage.GetArrival() != "") || stage.GetDistance() > 0 || stage.GetType() != pcsscraper.Stage_TYPE_UNSPECIFIED
-}
-
-func buildPastRace(race *pcsscraper.Race, riders []*pcsscraper.Rider) *PastRace {
-	return &PastRace{
-		GcTop3: getTop3FromResult(race.Result, riders),
-	}
 }
 
 func findRider(riderID string, riders []*pcsscraper.Rider) *pcsscraper.Rider {
