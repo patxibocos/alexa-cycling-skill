@@ -36,23 +36,25 @@ func handleRaceResult(request Request, localizer i18nLocalizer, cyclingData *pcs
 	raceId := raceNameSlot.Resolutions.ResolutionsPerAuthority[0].Values[0].Value.ID
 	race := cycling.FindRace(cyclingData.Races, raceId)
 	raceResult := cycling.GetRaceResult(race, cyclingData.Riders)
-	message := messageForRaceResult(localizer, race, raceResult)
+	var messages []string
+	messages = append(messages, messageForRaceResult(localizer, race, raceResult))
 	endSession := true
 	sessionAttributes := make(map[string]interface{})
 	if rr, ok := raceResult.(*cycling.MultiStageRaceWithResults); ok && !cycling.IsLastRaceStage(race, rr.StageNumber) && cycling.StageContainsData(race.Stages[rr.StageNumber]) {
 		endSession = false
 		addStageInfoQuestionToSession(sessionAttributes, raceId, tomorrow())
-		message += ". Quieres saber cómo es la etapa de mañana?" // TODO localizer.localize("TomorrowStageQuestion")
+		messages = append(messages, localizer.localize(localizeParams{key: "TomorrowStageQuestion"}))
 	}
 	if _, ok := raceResult.(*cycling.FutureRace); ok && cycling.StageContainsData(race.Stages[0]) {
 		if cycling.IsSingleDayRace(race) {
-			message += ". Quieres saber cómo será la etapa?" // TODO localizer.localize("SingleStageQuestion")
+			messages = append(messages, localizer.localize(localizeParams{key: "SingleStageQuestion"}))
 		} else {
-			message += ". Quieres saber cómo será la primera etapa?" // TODO localizer.localize("FistStageQuestion")
+			messages = append(messages, localizer.localize(localizeParams{key: "FistStageQuestion"}))
 		}
 		endSession = false
 		addStageInfoQuestionToSession(sessionAttributes, raceId, race.StartDate.AsTime())
 	}
+	message := strings.Join(messages, ". ")
 	return newResponse().shouldEndSession(endSession).text(message).sessionAttributes(sessionAttributes)
 }
 

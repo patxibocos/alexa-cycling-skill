@@ -96,7 +96,8 @@ func messageForRaceResult(localizer i18nLocalizer, race *pcsscraper.Race, raceRe
 		})
 	case *cycling.MultiStageRaceWithResults: // If stageNumber is greater than 1 -> return GC. If it is the last stage -> announce race has ended
 		stageName := messageForStageName(localizer, race, ri.StageNumber)
-		message := localizer.localize(localizeParams{
+		var messages []string
+		messages = append(messages, localizer.localize(localizeParams{
 			key: "RaceResultMultiStageWithResults",
 			data: map[string]interface{}{
 				"StageName": stageName,
@@ -105,9 +106,9 @@ func messageForRaceResult(localizer i18nLocalizer, race *pcsscraper.Race, raceRe
 				"Second":    riderFullName(ri.Top3.Second.Rider),
 				"Third":     riderFullName(ri.Top3.Third.Rider),
 			},
-		})
+		}))
 		if ri.StageNumber > 1 {
-			message += localizer.localize(localizeParams{
+			messages = append(messages, localizer.localize(localizeParams{
 				key: "RaceResultGeneralClassification",
 				data: map[string]interface{}{
 					"First":                riderFullName(ri.GcTop3.First.Rider),
@@ -116,9 +117,9 @@ func messageForRaceResult(localizer i18nLocalizer, race *pcsscraper.Race, raceRe
 					"GapFromFirstToSecond": messageForGap(localizer, ri.GcTop3.Second.Time-ri.GcTop3.First.Time),
 					"GapFromSecondToThird": messageForGap(localizer, ri.GcTop3.Third.Time-ri.GcTop3.Second.Time),
 				},
-			})
+			}))
 		}
-		return message
+		return strings.Join(messages, ". ")
 	case *cycling.MultiStageRaceWithoutResults:
 		stageName := messageForStageName(localizer, race, ri.StageNumber)
 		return localizer.localize(localizeParams{
@@ -176,21 +177,22 @@ func messageForGap(localizer i18nLocalizer, gap int64) string {
 	}
 	minutes := gap / 60
 	seconds := gap % 60
-	message := localizer.localize(localizeParams{
+	var messages []string
+	messages = append(messages, localizer.localize(localizeParams{
 		key: "GapMinutes",
 		data: map[string]interface{}{
 			"Minutes": minutes,
 		},
 		pluralCount: minutes,
-	})
+	}))
 	if seconds > 0 {
-		message += localizer.localize(localizeParams{
+		messages = append(messages, localizer.localize(localizeParams{
 			key: "GapAndSeconds",
 			data: map[string]interface{}{
 				"Seconds": seconds,
 			},
 			pluralCount: seconds,
-		})
+		}))
 	}
-	return message
+	return strings.Join(messages, " ")
 }
