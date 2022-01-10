@@ -23,6 +23,8 @@ jobs:
     # Checkout the repository to the GitHub Actions runner
     - name: Checkout
       uses: actions/checkout@v2
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
