@@ -1,9 +1,14 @@
 package alexa
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/internal/cycling"
 	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/pcsscraper"
+	"io"
+	"io/ioutil"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -228,14 +233,68 @@ func handleYes(request Request, localizer i18nLocalizer, cyclingData *pcsscraper
 		raceAttribute := request.Session.Attributes[raceAttribute]
 		raceId := fmt.Sprintf("%v", raceAttribute)
 		race := cycling.FindRace(cyclingData.Races, raceId)
-		message := localizer.localize(localizeParams{
-			key: "RaceReminderSet",
-			data: map[string]interface{}{
-				"ReminderDate": formattedDate(race.StartDate.AsTime().Add(-24 * time.Hour)),
-				"Race":         raceName(raceId),
-			},
-		})
+		err := setReminderForRace(request, localizer, race)
+		var message string
+		if err != nil {
+			// TODO something went wrong
+		} else {
+			message = localizer.localize(localizeParams{key: "RaceReminderSet"})
+		}
 		return newResponse().text(message).shouldEndSession(true)
 	}
 	return newResponse().shouldEndSession(true).text("")
+}
+
+func setReminderForRace(request Request, localizer i18nLocalizer, race *pcsscraper.Race) error {
+	resp, err := doRequest("GET", fmt.Sprintf("/v2/devices/%s/settings/System.timeZone", request.Context.System.Device.DeviceID), request, nil)
+	if err != nil {
+		return err
+	}
+	body, _ := ioutil.ReadAll(resp.Body)
+	timeZone := string(body)
+	reminderMessage := localizer.localize(localizeParams{
+		key: "RaceReminder",
+		data: map[string]interface{}{
+			"Race": raceName(race.Id),
+		},
+	})
+	reminderRequest := buildReminderRequest(race.StartDate.AsTime().Add(-14*time.Hour), timeZone, request.Body.Locale, reminderMessage)
+	serializedRequest, _ := json.Marshal(reminderRequest)
+	_, err = doRequest("POST", "/v1/alerts/reminders", request, bytes.NewBuffer(serializedRequest))
+	return err
+}
+
+func doRequest(method string, uri string, request Request, body io.Reader) (*http.Response, error) {
+	req, err := http.NewRequest(method, fmt.Sprintf("%s%s", request.Context.System.ApiEndpoint, uri), body)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", request.Context.System.ApiAccessToken))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(req)
+	respBody, _ := ioutil.ReadAll(resp.Body)
+	fmt.Println(fmt.Sprintf("request to %s resulted in status %s and response body %s", uri, resp.Status, respBody))
+	return resp, err
+}
+
+func buildReminderRequest(scheduledTime time.Time, timeZone string, locale, text string) reminderRequest {
+	return reminderRequest{
+		RequestTime: time.Now().Format(time.RFC3339),
+		Trigger: trigger{
+			Type:          "SCHEDULED_ABSOLUTE",
+			ScheduledTime: scheduledTime.Format(time.RFC3339),
+			TimeZoneID:    timeZone,
+		},
+		AlertInfo: alertInfo{
+			SpokenInfo: spokenInfo{
+				Content: []content{{
+					Locale: locale,
+					Text:   text,
+				}},
+			},
+		},
+		PushNotification: pushNotification{
+			Status: "ENABLED",
+		},
+	}
 }

@@ -126,4 +126,7 @@ other = "No hay ninguna etapa de montaña en {{.Race}}"
 other = "¿Quieres que te ponga un recordatorio el día anterior?"
 
 [RaceReminderSet]
-other = "El {{.ReminderDate}} te recordaré que el día siguiente empieza {{.Race}}"
+other = "Vale, te lo recordaré el día anterior"
+
+[RaceReminder]
+other = "Te recuerdo que mañana empieza {{.Race}}"
