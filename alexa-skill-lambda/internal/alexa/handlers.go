@@ -3,6 +3,7 @@ package alexa
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/internal/cycling"
 	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/pcsscraper"
@@ -22,6 +23,8 @@ const setReminderAttributeValue = "SetReminder"
 const raceSlot = "race"
 const daySlot = "day"
 const numberSlot = "number"
+
+var ErrUnauthorized = errors.New("ErrUnauthorized")
 
 func tomorrow() time.Time {
 	now := time.Now()
@@ -107,6 +110,22 @@ func handleLaunchRequest(_ Request, localizer i18nLocalizer, cyclingData *pcsscr
 	}
 	message := strings.Join(messages, ". ")
 	return newResponse().shouldEndSession(endSession).text(message).sessionAttributes(sessionAttributes)
+}
+
+func handleConnectionsResponse(request Request, localizer i18nLocalizer, cyclingData *pcsscraper.CyclingData) Response {
+	// TODO Check that question is for setting reminder
+	if request.Body.Payload.Status != "ACCEPTED" {
+		return newResponse().text("Vale, no te lo recordaré").shouldEndSession(true)
+	}
+	raceAttribute := request.Session.Attributes[raceAttribute]
+	raceId := fmt.Sprintf("%v", raceAttribute)
+	race := cycling.FindRace(cyclingData.Races, raceId)
+	err := setReminderForRace(request, localizer, race)
+	if err != nil {
+		return newResponse().text("Algo ha ido mal y no he podido ponerte el recordatorio").shouldEndSession(true)
+	}
+	message := localizer.localize(localizeParams{key: "RaceReminderSet"})
+	return newResponse().text(message).shouldEndSession(true)
 }
 
 func handleDayStageInfo(request Request, localizer i18nLocalizer, cyclingData *pcsscraper.CyclingData) Response {
@@ -234,12 +253,28 @@ func handleYes(request Request, localizer i18nLocalizer, cyclingData *pcsscraper
 		raceId := fmt.Sprintf("%v", raceAttribute)
 		race := cycling.FindRace(cyclingData.Races, raceId)
 		err := setReminderForRace(request, localizer, race)
-		var message string
-		if err != nil {
-			// TODO something went wrong
-		} else {
-			message = localizer.localize(localizeParams{key: "RaceReminderSet"})
+		if errors.Is(err, ErrUnauthorized) {
+			reminderDirective := SendRequestDirective{
+				Type: "Connections.SendRequest",
+				Name: "AskFor",
+				Payload: DirectivePayload{
+					Type:    "AskForPermissionsConsentRequest",
+					Version: "2",
+					PermissionScopes: []DirectivePermissionScope{
+						{
+							PermissionScope: "alexa::alerts:reminders:skill:readwrite",
+							ConsentLevel:    "ACCOUNT",
+						},
+					},
+				},
+				Token: "",
+			}
+			return newResponse().text("Necesito tu permiso para poner un recordatorio").directives([]interface{}{reminderDirective}).shouldEndSession(true)
 		}
+		if err != nil {
+			return newResponse().text("Algo ha ido mal y no he podido ponerte el recordatorio").shouldEndSession(true)
+		}
+		message := localizer.localize(localizeParams{key: "RaceReminderSet"})
 		return newResponse().text(message).shouldEndSession(true)
 	}
 	return newResponse().shouldEndSession(true).text("")
@@ -260,7 +295,10 @@ func setReminderForRace(request Request, localizer i18nLocalizer, race *pcsscrap
 	})
 	reminderRequest := buildReminderRequest(race.StartDate.AsTime().Add(-14*time.Hour), timeZone, request.Body.Locale, reminderMessage)
 	serializedRequest, _ := json.Marshal(reminderRequest)
-	_, err = doRequest("POST", "/v1/alerts/reminders", request, bytes.NewBuffer(serializedRequest))
+	resp, err = doRequest("POST", "/v1/alerts/reminders", request, bytes.NewBuffer(serializedRequest))
+	if resp.StatusCode == 401 {
+		return ErrUnauthorized
+	}
 	return err
 }
 
@@ -279,10 +317,10 @@ func doRequest(method string, uri string, request Request, body io.Reader) (*htt
 
 func buildReminderRequest(scheduledTime time.Time, timeZone string, locale, text string) reminderRequest {
 	return reminderRequest{
-		RequestTime: time.Now().Format(time.RFC3339),
+		RequestTime: time.Now().Format("2006-01-02T15:04:05"),
 		Trigger: trigger{
 			Type:          "SCHEDULED_ABSOLUTE",
-			ScheduledTime: scheduledTime.Format(time.RFC3339),
+			ScheduledTime: scheduledTime.Format("2006-01-02T15:04:05"),
 			TimeZoneID:    timeZone,
 		},
 		AlertInfo: alertInfo{
