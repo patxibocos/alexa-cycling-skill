@@ -113,19 +113,23 @@ func handleLaunchRequest(_ Request, localizer i18nLocalizer, cyclingData *pcsscr
 }
 
 func handleConnectionsResponse(request Request, localizer i18nLocalizer, cyclingData *pcsscraper.CyclingData) Response {
-	// TODO Check that question is for setting reminder
 	if request.Body.Payload.Status != "ACCEPTED" {
-		return newResponse().text("Vale, no te lo recordaré").shouldEndSession(true)
+		return newResponse().text(localizer.localize(localizeParams{key: "Ooops"})).shouldEndSession(true)
 	}
-	raceAttribute := request.Session.Attributes[raceAttribute]
-	raceId := fmt.Sprintf("%v", raceAttribute)
-	race := cycling.FindRace(cyclingData.Races, raceId)
-	err := setReminderForRace(request, localizer, race)
-	if err != nil {
-		return newResponse().text("Algo ha ido mal y no he podido ponerte el recordatorio").shouldEndSession(true)
+	splits := strings.Split(request.Body.Token, ":")
+	action := splits[0]
+	switch action {
+	case setReminderAttributeValue:
+		raceId := splits[1]
+		race := cycling.FindRace(cyclingData.Races, raceId)
+		err := setReminderForRace(request, localizer, race)
+		if err != nil {
+			return newResponse().text(localizer.localize(localizeParams{key: "SetReminderFailed"})).shouldEndSession(true)
+		}
+		message := localizer.localize(localizeParams{key: "RaceReminderSet"})
+		return newResponse().text(message).shouldEndSession(true)
 	}
-	message := localizer.localize(localizeParams{key: "RaceReminderSet"})
-	return newResponse().text(message).shouldEndSession(true)
+	return newResponse().shouldEndSession(true)
 }
 
 func handleDayStageInfo(request Request, localizer i18nLocalizer, cyclingData *pcsscraper.CyclingData) Response {
@@ -216,7 +220,7 @@ func handleMountainsStart(request Request, localizer i18nLocalizer, cyclingData 
 }
 
 func handleNo(_ Request, _ i18nLocalizer, _ *pcsscraper.CyclingData) Response {
-	return newResponse().shouldEndSession(true).text("")
+	return newResponse().shouldEndSession(true)
 }
 
 func handleHelp(_ Request, localizer i18nLocalizer, _ *pcsscraper.CyclingData) Response {
@@ -267,17 +271,17 @@ func handleYes(request Request, localizer i18nLocalizer, cyclingData *pcsscraper
 						},
 					},
 				},
-				Token: "",
+				Token: fmt.Sprintf("%s:%s", setReminderAttributeValue, raceId),
 			}
-			return newResponse().text("Necesito tu permiso para poner un recordatorio").directives([]interface{}{reminderDirective}).shouldEndSession(true)
+			return newResponse().directives([]interface{}{reminderDirective}).shouldEndSession(true)
 		}
 		if err != nil {
-			return newResponse().text("Algo ha ido mal y no he podido ponerte el recordatorio").shouldEndSession(true)
+			return newResponse().text(localizer.localize(localizeParams{key: "SetReminderFailed"})).shouldEndSession(true)
 		}
 		message := localizer.localize(localizeParams{key: "RaceReminderSet"})
 		return newResponse().text(message).shouldEndSession(true)
 	}
-	return newResponse().shouldEndSession(true).text("")
+	return newResponse().shouldEndSession(true)
 }
 
 func setReminderForRace(request Request, localizer i18nLocalizer, race *pcsscraper.Race) error {

@@ -30,6 +30,7 @@ type ReqBody struct {
 	DialogState string  `json:"dialogState,omitempty"`
 	Error       Error   `json:"error"`
 	Payload     Payload `json:"payload"`
+	Token       string  `json:"token"`
 }
 
 type Payload struct {
