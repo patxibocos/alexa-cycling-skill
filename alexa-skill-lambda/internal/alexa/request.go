@@ -21,14 +21,20 @@ type Session struct {
 }
 
 type ReqBody struct {
-	Type        string `json:"type"`
-	RequestID   string `json:"requestId"`
-	Timestamp   string `json:"timestamp"`
-	Locale      string `json:"locale"`
-	Intent      Intent `json:"intent,omitempty"`
-	Reason      string `json:"reason,omitempty"`
-	DialogState string `json:"dialogState,omitempty"`
-	Error       Error  `json:"error"`
+	Type        string  `json:"type"`
+	RequestID   string  `json:"requestId"`
+	Timestamp   string  `json:"timestamp"`
+	Locale      string  `json:"locale"`
+	Intent      Intent  `json:"intent,omitempty"`
+	Reason      string  `json:"reason,omitempty"`
+	DialogState string  `json:"dialogState,omitempty"`
+	Error       Error   `json:"error"`
+	Payload     Payload `json:"payload"`
+	Token       string  `json:"token"`
+}
+
+type Payload struct {
+	Status string `json:"status"`
 }
 
 type Error struct {

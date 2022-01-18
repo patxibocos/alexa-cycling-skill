@@ -1,9 +1,15 @@
 package alexa
 
 import (
+	"bytes"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/internal/cycling"
 	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/pcsscraper"
+	"io"
+	"io/ioutil"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -13,9 +19,12 @@ const questionAttribute = "question"
 const raceAttribute = "race"
 const dayAttribute = "day"
 const stageInfoAttributeValue = "StageInfo"
+const setReminderAttributeValue = "SetReminder"
 const raceSlot = "race"
 const daySlot = "day"
 const numberSlot = "number"
+
+var ErrUnauthorized = errors.New("ErrUnauthorized")
 
 func tomorrow() time.Time {
 	now := time.Now()
@@ -77,14 +86,15 @@ func handleLaunchRequest(_ Request, localizer i18nLocalizer, cyclingData *pcsscr
 					"StartDate": formattedDate(nextRace.StartDate.AsTime()),
 				},
 			}))
-			if cycling.StageContainsData(nextRace.Stages[0]) {
-				if cycling.IsSingleDayRace(nextRace) {
-					messages = append(messages, localizer.localize(localizeParams{key: "FistStageQuestion"}))
-				} else {
-					messages = append(messages, localizer.localize(localizeParams{key: "SingleStageQuestion"}))
-				}
+			now := time.Now()
+			year, month, day := now.Date()
+			today := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
+			daysDiff := nextRace.StartDate.AsTime().Sub(today).Hours()
+			if daysDiff >= 7 {
+				messages = append(messages, localizer.localize(localizeParams{key: "RaceReminderQuestion"}))
+				sessionAttributes[questionAttribute] = setReminderAttributeValue
+				sessionAttributes[raceAttribute] = nextRace.Id
 				endSession = false
-				addStageInfoQuestionToSession(sessionAttributes, nextRace.Id, nextRace.StartDate.AsTime())
 			}
 		}
 	case 1:
@@ -100,6 +110,26 @@ func handleLaunchRequest(_ Request, localizer i18nLocalizer, cyclingData *pcsscr
 	}
 	message := strings.Join(messages, ". ")
 	return newResponse().shouldEndSession(endSession).text(message).sessionAttributes(sessionAttributes)
+}
+
+func handleConnectionsResponse(request Request, localizer i18nLocalizer, cyclingData *pcsscraper.CyclingData) Response {
+	if request.Body.Payload.Status != "ACCEPTED" {
+		return newResponse().text(localizer.localize(localizeParams{key: "Ooops"})).shouldEndSession(true)
+	}
+	splits := strings.Split(request.Body.Token, ":")
+	action := splits[0]
+	switch action {
+	case setReminderAttributeValue:
+		raceId := splits[1]
+		race := cycling.FindRace(cyclingData.Races, raceId)
+		err := setReminderForRace(request, localizer, race)
+		if err != nil {
+			return newResponse().text(localizer.localize(localizeParams{key: "SetReminderFailed"})).shouldEndSession(true)
+		}
+		message := localizer.localize(localizeParams{key: "RaceReminderSet"})
+		return newResponse().text(message).shouldEndSession(true)
+	}
+	return newResponse().shouldEndSession(true)
 }
 
 func handleDayStageInfo(request Request, localizer i18nLocalizer, cyclingData *pcsscraper.CyclingData) Response {
@@ -190,7 +220,7 @@ func handleMountainsStart(request Request, localizer i18nLocalizer, cyclingData 
 }
 
 func handleNo(_ Request, _ i18nLocalizer, _ *pcsscraper.CyclingData) Response {
-	return newResponse().shouldEndSession(true).text("")
+	return newResponse().shouldEndSession(true)
 }
 
 func handleHelp(_ Request, localizer i18nLocalizer, _ *pcsscraper.CyclingData) Response {
@@ -212,7 +242,8 @@ func handleCancel(_ Request, localizer i18nLocalizer, _ *pcsscraper.CyclingData)
 
 func handleYes(request Request, localizer i18nLocalizer, cyclingData *pcsscraper.CyclingData) Response {
 	questionAttribute := request.Session.Attributes[questionAttribute]
-	if questionAttribute == stageInfoAttributeValue {
+	switch questionAttribute {
+	case stageInfoAttributeValue:
 		dayAttribute := request.Session.Attributes[dayAttribute]
 		raceAttribute := request.Session.Attributes[raceAttribute]
 		day, _ := time.Parse("2006-01-02", fmt.Sprintf("%v", dayAttribute))
@@ -221,6 +252,91 @@ func handleYes(request Request, localizer i18nLocalizer, cyclingData *pcsscraper
 		raceStage := cycling.GetRaceStageForDay(race, day)
 		message := messageForRaceStage(localizer, raceStage)
 		return newResponse().shouldEndSession(true).text(message)
+	case setReminderAttributeValue:
+		raceAttribute := request.Session.Attributes[raceAttribute]
+		raceId := fmt.Sprintf("%v", raceAttribute)
+		race := cycling.FindRace(cyclingData.Races, raceId)
+		err := setReminderForRace(request, localizer, race)
+		if errors.Is(err, ErrUnauthorized) {
+			reminderDirective := SendRequestDirective{
+				Type: "Connections.SendRequest",
+				Name: "AskFor",
+				Payload: DirectivePayload{
+					Type:    "AskForPermissionsConsentRequest",
+					Version: "2",
+					PermissionScopes: []DirectivePermissionScope{
+						{
+							PermissionScope: "alexa::alerts:reminders:skill:readwrite",
+							ConsentLevel:    "ACCOUNT",
+						},
+					},
+				},
+				Token: fmt.Sprintf("%s:%s", setReminderAttributeValue, raceId),
+			}
+			return newResponse().directives([]interface{}{reminderDirective}).shouldEndSession(true)
+		}
+		if err != nil {
+			return newResponse().text(localizer.localize(localizeParams{key: "SetReminderFailed"})).shouldEndSession(true)
+		}
+		message := localizer.localize(localizeParams{key: "RaceReminderSet"})
+		return newResponse().text(message).shouldEndSession(true)
 	}
-	return newResponse().shouldEndSession(true).text("")
+	return newResponse().shouldEndSession(true)
+}
+
+func setReminderForRace(request Request, localizer i18nLocalizer, race *pcsscraper.Race) error {
+	resp, err := doRequest("GET", fmt.Sprintf("/v2/devices/%s/settings/System.timeZone", request.Context.System.Device.DeviceID), request, nil)
+	if err != nil {
+		return err
+	}
+	body, _ := ioutil.ReadAll(resp.Body)
+	timeZone := string(body)
+	reminderMessage := localizer.localize(localizeParams{
+		key: "RaceReminder",
+		data: map[string]interface{}{
+			"Race": raceName(race.Id),
+		},
+	})
+	reminderRequest := buildReminderRequest(race.StartDate.AsTime().Add(-14*time.Hour), timeZone, request.Body.Locale, reminderMessage)
+	serializedRequest, _ := json.Marshal(reminderRequest)
+	resp, err = doRequest("POST", "/v1/alerts/reminders", request, bytes.NewBuffer(serializedRequest))
+	if resp.StatusCode == 401 {
+		return ErrUnauthorized
+	}
+	return err
+}
+
+func doRequest(method string, uri string, request Request, body io.Reader) (*http.Response, error) {
+	req, err := http.NewRequest(method, fmt.Sprintf("%s%s", request.Context.System.ApiEndpoint, uri), body)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", request.Context.System.ApiAccessToken))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(req)
+	respBody, _ := ioutil.ReadAll(resp.Body)
+	fmt.Println(fmt.Sprintf("request to %s resulted in status %s and response body %s", uri, resp.Status, respBody))
+	return resp, err
+}
+
+func buildReminderRequest(scheduledTime time.Time, timeZone string, locale, text string) reminderRequest {
+	return reminderRequest{
+		RequestTime: time.Now().Format("2006-01-02T15:04:05"),
+		Trigger: trigger{
+			Type:          "SCHEDULED_ABSOLUTE",
+			ScheduledTime: scheduledTime.Format("2006-01-02T15:04:05"),
+			TimeZoneID:    timeZone,
+		},
+		AlertInfo: alertInfo{
+			SpokenInfo: spokenInfo{
+				Content: []content{{
+					Locale: locale,
+					Text:   text,
+				}},
+			},
+		},
+		PushNotification: pushNotification{
+			Status: "ENABLED",
+		},
+	}
 }

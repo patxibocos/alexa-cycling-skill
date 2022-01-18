@@ -13,6 +13,7 @@ type ResBody struct {
 	OutputSpeech     *OutputSpeech `json:"outputSpeech,omitempty"`
 	Card             *Card         `json:"card,omitempty"`
 	ShouldEndSession bool          `json:"shouldEndSession"`
+	Directives       []interface{} `json:"directives,omitempty"`
 }
 
 type Card struct {
@@ -27,6 +28,24 @@ type OutputSpeech struct {
 	Text         string `json:"text,omitempty"`
 	SSML         string `json:"ssml,omitempty"`
 	PlayBehavior string `json:"playBehavior,omitempty"`
+}
+
+type SendRequestDirective struct {
+	Type    string           `json:"type"`
+	Name    string           `json:"name"`
+	Payload DirectivePayload `json:"payload"`
+	Token   string           `json:"token"`
+}
+
+type DirectivePayload struct {
+	Type             string                     `json:"@type"`
+	Version          string                     `json:"@version"`
+	PermissionScopes []DirectivePermissionScope `json:"permissionScopes"`
+}
+
+type DirectivePermissionScope struct {
+	PermissionScope string `json:"permissionScope"`
+	ConsentLevel    string `json:"consentLevel"`
 }
 
 func newResponse() Response {
@@ -52,5 +71,10 @@ func (r Response) text(text string) Response {
 
 func (r Response) sessionAttributes(sessionAttributes map[string]interface{}) Response {
 	r.SessionAttributes = sessionAttributes
+	return r
+}
+
+func (r Response) directives(directives []interface{}) Response {
+	r.Body.Directives = directives
 	return r
 }

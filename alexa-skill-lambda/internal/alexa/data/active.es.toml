@@ -121,3 +121,18 @@ other = "Aún no hay información disponible del perfil de las etapas para {{.Ra
 
 [MountainsNoStage]
 other = "No hay ninguna etapa de montaña en {{.Race}}"
+
+[RaceReminderQuestion]
+other = "¿Quieres que te ponga un recordatorio el día anterior?"
+
+[RaceReminderSet]
+other = "Vale, te lo recordaré el día anterior"
+
+[RaceReminder]
+other = "Hola ciclista, mañana empieza {{.Race}}"
+
+[SetReminderFailed]
+other = "Algo ha ido mal y no he podido ponerte el recordatorio"
+
+[Ooops]
+other = "Vaya"

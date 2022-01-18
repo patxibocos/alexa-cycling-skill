@@ -21,6 +21,9 @@ func RequestHandler(request Request, cyclingData *pcsscraper.CyclingData) Respon
 	if request.Body.Type == "LaunchRequest" {
 		return handleLaunchRequest(request, localizer, cyclingData)
 	}
+	if request.Body.Type == "Connections.Response" {
+		return handleConnectionsResponse(request, localizer, cyclingData)
+	}
 	if handler, ok := intentRouting[request.Body.Intent.Name]; ok {
 		return handler(request, localizer, cyclingData)
 	}
