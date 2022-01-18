@@ -285,21 +285,15 @@ func handleYes(request Request, localizer i18nLocalizer, cyclingData *pcsscraper
 }
 
 func setReminderForRace(request Request, localizer i18nLocalizer, race *pcsscraper.Race) error {
-	resp, err := doRequest("GET", fmt.Sprintf("/v2/devices/%s/settings/System.timeZone", request.Context.System.Device.DeviceID), request, nil)
-	if err != nil {
-		return err
-	}
-	body, _ := ioutil.ReadAll(resp.Body)
-	timeZone := string(body)
 	reminderMessage := localizer.localize(localizeParams{
 		key: "RaceReminder",
 		data: map[string]interface{}{
 			"Race": raceName(race.Id),
 		},
 	})
-	reminderRequest := buildReminderRequest(race.StartDate.AsTime().Add(-14*time.Hour), timeZone, request.Body.Locale, reminderMessage)
+	reminderRequest := buildReminderRequest(race.StartDate.AsTime().Add(-14*time.Hour), "Europe/Madrid", request.Body.Locale, reminderMessage)
 	serializedRequest, _ := json.Marshal(reminderRequest)
-	resp, err = doRequest("POST", "/v1/alerts/reminders", request, bytes.NewBuffer(serializedRequest))
+	resp, err := doRequest("POST", "/v1/alerts/reminders", request, bytes.NewBuffer(serializedRequest))
 	if resp.StatusCode == 401 {
 		return ErrUnauthorized
 	}
