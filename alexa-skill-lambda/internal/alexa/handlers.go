@@ -291,7 +291,7 @@ func setReminderForRace(request Request, localizer i18nLocalizer, race *pcsscrap
 			"Race": raceName(race.Id),
 		},
 	})
-	reminderRequest := buildReminderRequest(race.StartDate.AsTime().Add(-14*time.Hour), "Europe/Madrid", request.Body.Locale, reminderMessage)
+	reminderRequest := buildReminderRequest(race.StartDate.AsTime().Add(-14*time.Hour), request.Body.Locale, reminderMessage)
 	serializedRequest, _ := json.Marshal(reminderRequest)
 	resp, err := doRequest("POST", "/v1/alerts/reminders", request, bytes.NewBuffer(serializedRequest))
 	if resp.StatusCode == 401 {
@@ -313,13 +313,12 @@ func doRequest(method string, uri string, request Request, body io.Reader) (*htt
 	return resp, err
 }
 
-func buildReminderRequest(scheduledTime time.Time, timeZone string, locale, text string) reminderRequest {
+func buildReminderRequest(scheduledTime time.Time, locale, text string) reminderRequest {
 	return reminderRequest{
 		RequestTime: time.Now().Format("2006-01-02T15:04:05"),
 		Trigger: trigger{
 			Type:          "SCHEDULED_ABSOLUTE",
 			ScheduledTime: scheduledTime.Format("2006-01-02T15:04:05"),
-			TimeZoneID:    timeZone,
 		},
 		AlertInfo: alertInfo{
 			SpokenInfo: spokenInfo{
