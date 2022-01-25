@@ -30,3 +30,12 @@ type content struct {
 type pushNotification struct {
 	Status string `json:"status"`
 }
+
+type remindersResponse struct {
+	TotalCount string  `json:"totalCount"`
+	Alerts     []alert `json:"alerts"`
+}
+
+type alert struct {
+	Trigger trigger `json:"trigger"`
+}
