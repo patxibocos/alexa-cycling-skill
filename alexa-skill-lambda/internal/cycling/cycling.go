@@ -1,6 +1,8 @@
 package cycling
 
 import (
+	"crypto/sha1"
+	"encoding/binary"
 	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/pcsscraper"
 	"time"
 )
@@ -208,4 +210,12 @@ func today() time.Time {
 	year, month, day := now.Date()
 	today := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
 	return today
+}
+
+func MillisForRace(race *pcsscraper.Race) int {
+	raceIdSum := sha1.Sum([]byte(race.Id))
+	sumBytes := make([]byte, len(raceIdSum))
+	copy(sumBytes, raceIdSum[:])
+	millisFromRaceId := int(binary.BigEndian.Uint16(sumBytes) % 1000)
+	return millisFromRaceId
 }
