@@ -216,6 +216,6 @@ func MillisForRace(race *pcsscraper.Race) int {
 	raceIdSum := sha1.Sum([]byte(race.Id))
 	sumBytes := make([]byte, len(raceIdSum))
 	copy(sumBytes, raceIdSum[:])
-	millisFromRaceId := int(binary.BigEndian.Uint16(sumBytes) % 1000)
+	millisFromRaceId := int(binary.BigEndian.Uint16(sumBytes) % 60000)
 	return millisFromRaceId
 }
