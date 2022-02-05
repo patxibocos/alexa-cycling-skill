@@ -354,7 +354,7 @@ func isReminderForRace(race *pcsscraper.Race, request Request) bool {
 	raceMillis := cycling.MillisForRace(race)
 	for _, reminder := range response.Alerts {
 		scheduledTime, _ := time.Parse("2006-01-02T15:04:05.000", reminder.Trigger.ScheduledTime)
-		if int(scheduledTime.UnixMilli()%1000) == raceMillis {
+		if int(scheduledTime.UnixMilli()%cycling.MillisModulo) == raceMillis {
 			return true
 		}
 	}
