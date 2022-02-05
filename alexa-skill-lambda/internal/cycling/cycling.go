@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+const MillisModulo = 60000
+
 func GetRaceResult(race *pcsscraper.Race, riders []*pcsscraper.Rider) RaceResult {
 	if raceIsFromThePast(race) {
 		return &PastRace{GcTop3: getTop3FromResult(race.Result, riders)}
@@ -216,6 +218,6 @@ func MillisForRace(race *pcsscraper.Race) int {
 	raceIdSum := sha1.Sum([]byte(race.Id))
 	sumBytes := make([]byte, len(raceIdSum))
 	copy(sumBytes, raceIdSum[:])
-	millisFromRaceId := int(binary.BigEndian.Uint16(sumBytes) % 60000)
+	millisFromRaceId := int(binary.BigEndian.Uint16(sumBytes) % MillisModulo)
 	return millisFromRaceId
 }
