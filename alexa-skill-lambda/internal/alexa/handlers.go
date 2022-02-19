@@ -109,6 +109,11 @@ func handleLaunchRequest(request Request, localizer i18nLocalizer, cyclingData *
 	case 1:
 		race := activeRaces[0]
 		raceResult := cycling.GetRaceResult(race, cyclingData.Riders)
+		if rr, ok := raceResult.(*cycling.MultiStageRaceWithResults); ok && !cycling.IsLastRaceStage(race, rr.StageNumber) && cycling.StageContainsData(race.Stages[rr.StageNumber]) {
+			endSession = false
+			addStageInfoQuestionToSession(sessionAttributes, race.Id, tomorrow())
+			messages = append(messages, localizer.localize(localizeParams{key: "TomorrowStageQuestion"}))
+		}
 		messages = append(messages, messageForRaceResult(localizer, race, raceResult))
 	default:
 		for _, race := range activeRaces {
