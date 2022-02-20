@@ -107,18 +107,16 @@ func messageForRaceResult(localizer i18nLocalizer, race *pcsscraper.Race, raceRe
 				"Third":     riderFullName(ri.Top3.Third.Rider),
 			},
 		}))
-		if ri.StageNumber > 1 {
-			messages = append(messages, localizer.localize(localizeParams{
-				key: "RaceResultGeneralClassification",
-				data: map[string]interface{}{
-					"First":                riderFullName(ri.GcTop3.First.Rider),
-					"Second":               riderFullName(ri.GcTop3.Second.Rider),
-					"Third":                riderFullName(ri.GcTop3.Third.Rider),
-					"GapFromFirstToSecond": messageForGap(localizer, ri.GcTop3.Second.Time-ri.GcTop3.First.Time),
-					"GapFromSecondToThird": messageForGap(localizer, ri.GcTop3.Third.Time-ri.GcTop3.Second.Time),
-				},
-			}))
-		}
+		messages = append(messages, localizer.localize(localizeParams{
+			key: "RaceResultGeneralClassification",
+			data: map[string]interface{}{
+				"First":                riderFullName(ri.GcTop3.First.Rider),
+				"Second":               riderFullName(ri.GcTop3.Second.Rider),
+				"Third":                riderFullName(ri.GcTop3.Third.Rider),
+				"GapFromFirstToSecond": messageForGap(localizer, ri.GcTop3.Second.Time-ri.GcTop3.First.Time),
+				"GapFromSecondToThird": messageForGap(localizer, ri.GcTop3.Third.Time-ri.GcTop3.Second.Time),
+			},
+		}))
 		return strings.Join(messages, ". ")
 	case *cycling.MultiStageRaceWithoutResults:
 		stageName := messageForStageName(localizer, race, ri.StageNumber)
