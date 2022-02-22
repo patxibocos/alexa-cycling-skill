@@ -17,7 +17,7 @@ other = "Tiene una distancia de {{.Distance}} kilómetros"
 other = "El perfil de la etapa es {{.Type}}"
 
 [RaceResultPast]
-other = "{{.Race}} terminó el {{.EndDate}}. El ganador fue {{.First}}, segundo {{.Second}} y tercero {{.Third}}"
+other = "{{.Race}} terminó el {{.EndDate}}. El ganador fue {{.First}}, segundo {{.Second}}, y tercero {{.Third}}"
 
 [RaceResultFuture]
 other = "{{.Race}} no empieza hasta el {{.StartDate}}"
@@ -26,16 +26,16 @@ other = "{{.Race}} no empieza hasta el {{.StartDate}}"
 other = "Hoy es día de descanso en {{.Race}}"
 
 [RaceResultSingleDayWithResults]
-other = "Hoy se ha disputado {{.Race}}. El ganador ha sido {{.First}}, segundo {{.Second}} y tercero {{.Third}}"
+other = "Hoy se ha disputado {{.Race}}. El ganador ha sido {{.First}}, segundo {{.Second}}, y tercero {{.Third}}"
 
 [RaceResultSingleDayWithoutResults]
 other = "Hoy se disputa {{.Race}}, pero todavía no tengo los resultados. Vuelve a preguntarme en un rato"
 
 [RaceResultMultiStageWithResults]
-other = "Hoy se ha disputado la {{.StageName}} etapa de {{.Race}}. El ganador ha sido {{.First}}, segundo {{.Second}} y tercero {{.Third}}"
+other = "Hoy se ha disputado la {{.StageName}} etapa de {{.Race}}. El ganador ha sido {{.First}}, segundo {{.Second}}, y tercero {{.Third}}"
 
 [RaceResultGeneralClassification]
-other = "En la clasificación queda primero {{.First}}, segundo {{.GapFromFirstToSecond}} {{.Second}} y tercero {{.GapFromSecondToThird}} {{.Third}}"
+other = "En la clasificación queda primero {{.First}}, segundo {{.GapFromFirstToSecond}} {{.Second}}, y tercero {{.GapFromSecondToThird}} {{.Third}}"
 
 [FirstStage]
 other = "primera"
