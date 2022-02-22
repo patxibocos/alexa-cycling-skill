@@ -83,7 +83,7 @@ func FindMountainsStage(race *pcsscraper.Race) MountainsStage {
 		if stage.Type == pcsscraper.Stage_TYPE_MOUNTAINS_FLAT_FINISH || stage.Type == pcsscraper.Stage_TYPE_MOUNTAINS_UPHILL_FINISH {
 			return &YesMountainsStage{
 				StageNumber: i + 1,
-				StartDate:   stage.StartDate,
+				StartDate:   stage.StartDateTime,
 			}
 		}
 	}
@@ -96,7 +96,7 @@ func FindMountainsStage(race *pcsscraper.Race) MountainsStage {
 func GetRaceStageForDay(race *pcsscraper.Race, day time.Time) RaceStage {
 	var stage *pcsscraper.Stage
 	for _, s := range race.Stages {
-		if s.StartDate.AsTime() == day {
+		if s.StartDateTime.AsTime() == day {
 			stage = s
 		}
 	}
@@ -109,7 +109,7 @@ func GetRaceStageForDay(race *pcsscraper.Race, day time.Time) RaceStage {
 	}
 	if !StageContainsData(stage) {
 		return &StageWithoutData{
-			StartDate: stage.StartDate,
+			StartDate: stage.StartDateTime,
 		}
 	}
 	return &StageWithData{
@@ -117,7 +117,7 @@ func GetRaceStageForDay(race *pcsscraper.Race, day time.Time) RaceStage {
 		Arrival:   stage.GetArrival(),
 		Distance:  stage.GetDistance(),
 		Type:      stage.GetType(),
-		StartDate: stage.StartDate,
+		StartDate: stage.StartDateTime,
 	}
 }
 
@@ -133,7 +133,7 @@ func GetRaceStageForIndex(race *pcsscraper.Race, index int) RaceStage {
 	}
 	if !StageContainsData(stage) {
 		return &StageWithoutData{
-			StartDate: stage.GetStartDate(),
+			StartDate: stage.GetStartDateTime(),
 		}
 	}
 	return &StageWithData{
@@ -141,7 +141,7 @@ func GetRaceStageForIndex(race *pcsscraper.Race, index int) RaceStage {
 		Arrival:   stage.GetArrival(),
 		Distance:  stage.GetDistance(),
 		Type:      stage.GetType(),
-		StartDate: stage.GetStartDate(),
+		StartDate: stage.GetStartDateTime(),
 	}
 }
 
@@ -184,7 +184,7 @@ func raceIsActive(race *pcsscraper.Race) bool {
 func findTodayStage(race *pcsscraper.Race) (*pcsscraper.Stage, int) {
 	today := today()
 	for i, stage := range race.Stages {
-		if stage.StartDate.AsTime() == today {
+		if stage.StartDateTime.AsTime() == today {
 			return stage, i + 1
 		}
 	}
