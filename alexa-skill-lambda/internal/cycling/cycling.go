@@ -184,7 +184,9 @@ func raceIsActive(race *pcsscraper.Race) bool {
 func findTodayStage(race *pcsscraper.Race) (*pcsscraper.Stage, int) {
 	today := today()
 	for i, stage := range race.Stages {
-		if stage.StartDateTime.AsTime() == today {
+		stageYear, stageMonth, stageDay := stage.StartDateTime.AsTime().Date()
+		todayYear, todayMonth, todayDay := today.Date()
+		if stageYear == todayYear && stageMonth == todayMonth && stageDay == todayDay {
 			return stage, i + 1
 		}
 	}
