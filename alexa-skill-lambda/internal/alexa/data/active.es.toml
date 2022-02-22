@@ -29,7 +29,7 @@ other = "Hoy es día de descanso en {{.Race}}"
 other = "Hoy se ha disputado {{.Race}}. El ganador ha sido {{.First}}, segundo {{.Second}} y tercero {{.Third}}"
 
 [RaceResultSingleDayWithoutResults]
-other = "Hoy se disputa {{.Race}} pero todavía no tengo los resultados. Vuelve a preguntarme en un rato"
+other = "Hoy se disputa {{.Race}}, pero todavía no tengo los resultados. Vuelve a preguntarme en un rato"
 
 [RaceResultMultiStageWithResults]
 other = "Hoy se ha disputado la {{.StageName}} etapa de {{.Race}}. El ganador ha sido {{.First}}, segundo {{.Second}} y tercero {{.Third}}"
@@ -62,7 +62,7 @@ one = "y {{.Seconds}} segundo"
 other = "y {{.Seconds}} segundos"
 
 [RaceResultMultiStageWithoutResults]
-other = "Hoy se disputa la {{.StageName}} etapa de {{.Race}} pero todavía no tengo los resultados. Vuelve a preguntarme en un rato"
+other = "Hoy se disputa la {{.StageName}} etapa de {{.Race}}, pero todavía no tengo los resultados. Vuelve a preguntarme en un rato"
 
 [TomorrowStageQuestion]
 other = "¿Quieres saber cómo es la etapa de mañana?"

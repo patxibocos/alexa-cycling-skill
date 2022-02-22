@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.27.1
 // 	protoc        v3.17.3
-// source: src/main/proto/team.proto
+// source: team.proto
 
 package pcsscraper
 
@@ -53,11 +53,11 @@ func (x Team_Status) String() string {
 }
 
 func (Team_Status) Descriptor() protoreflect.EnumDescriptor {
-	return file_src_main_proto_team_proto_enumTypes[0].Descriptor()
+	return file_team_proto_enumTypes[0].Descriptor()
 }
 
 func (Team_Status) Type() protoreflect.EnumType {
-	return &file_src_main_proto_team_proto_enumTypes[0]
+	return &file_team_proto_enumTypes[0]
 }
 
 func (x Team_Status) Number() protoreflect.EnumNumber {
@@ -66,7 +66,54 @@ func (x Team_Status) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use Team_Status.Descriptor instead.
 func (Team_Status) EnumDescriptor() ([]byte, []int) {
-	return file_src_main_proto_team_proto_rawDescGZIP(), []int{0, 0}
+	return file_team_proto_rawDescGZIP(), []int{1, 0}
+}
+
+type Teams struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Teams []*Team `protobuf:"bytes,1,rep,name=teams,proto3" json:"teams,omitempty"`
+}
+
+func (x *Teams) Reset() {
+	*x = Teams{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_team_proto_msgTypes[0]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Teams) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Teams) ProtoMessage() {}
+
+func (x *Teams) ProtoReflect() protoreflect.Message {
+	mi := &file_team_proto_msgTypes[0]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Teams.ProtoReflect.Descriptor instead.
+func (*Teams) Descriptor() ([]byte, []int) {
+	return file_team_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *Teams) GetTeams() []*Team {
+	if x != nil {
+		return x.Teams
+	}
+	return nil
 }
 
 type Team struct {
@@ -89,7 +136,7 @@ type Team struct {
 func (x *Team) Reset() {
 	*x = Team{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_src_main_proto_team_proto_msgTypes[0]
+		mi := &file_team_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -102,7 +149,7 @@ func (x *Team) String() string {
 func (*Team) ProtoMessage() {}
 
 func (x *Team) ProtoReflect() protoreflect.Message {
-	mi := &file_src_main_proto_team_proto_msgTypes[0]
+	mi := &file_team_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -115,7 +162,7 @@ func (x *Team) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Team.ProtoReflect.Descriptor instead.
 func (*Team) Descriptor() ([]byte, []int) {
-	return file_src_main_proto_team_proto_rawDescGZIP(), []int{0}
+	return file_team_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Team) GetId() string {
@@ -188,14 +235,18 @@ func (x *Team) GetWebsite() string {
 	return ""
 }
 
-var File_src_main_proto_team_proto protoreflect.FileDescriptor
+var File_team_proto protoreflect.FileDescriptor
 
-var file_src_main_proto_team_proto_rawDesc = []byte{
-	0x0a, 0x19, 0x73, 0x72, 0x63, 0x2f, 0x6d, 0x61, 0x69, 0x6e, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f,
-	0x2f, 0x74, 0x65, 0x61, 0x6d, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x28, 0x69, 0x6f, 0x2e,
-	0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x70, 0x61, 0x74, 0x78, 0x69, 0x62, 0x6f, 0x63, 0x6f,
-	0x73, 0x2e, 0x70, 0x63, 0x73, 0x73, 0x63, 0x72, 0x61, 0x70, 0x65, 0x72, 0x2e, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x62, 0x75, 0x66, 0x22, 0x8d, 0x03, 0x0a, 0x04, 0x54, 0x65, 0x61, 0x6d, 0x12, 0x0e,
+var file_team_proto_rawDesc = []byte{
+	0x0a, 0x0a, 0x74, 0x65, 0x61, 0x6d, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x28, 0x69, 0x6f,
+	0x2e, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x70, 0x61, 0x74, 0x78, 0x69, 0x62, 0x6f, 0x63,
+	0x6f, 0x73, 0x2e, 0x70, 0x63, 0x73, 0x73, 0x63, 0x72, 0x61, 0x70, 0x65, 0x72, 0x2e, 0x70, 0x72,
+	0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x22, 0x4d, 0x0a, 0x05, 0x54, 0x65, 0x61, 0x6d, 0x73, 0x12,
+	0x44, 0x0a, 0x05, 0x74, 0x65, 0x61, 0x6d, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x2e,
+	0x2e, 0x69, 0x6f, 0x2e, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x70, 0x61, 0x74, 0x78, 0x69,
+	0x62, 0x6f, 0x63, 0x6f, 0x73, 0x2e, 0x70, 0x63, 0x73, 0x73, 0x63, 0x72, 0x61, 0x70, 0x65, 0x72,
+	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x65, 0x61, 0x6d, 0x52, 0x05,
+	0x74, 0x65, 0x61, 0x6d, 0x73, 0x22, 0x8d, 0x03, 0x0a, 0x04, 0x54, 0x65, 0x61, 0x6d, 0x12, 0x0e,
 	0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x02, 0x69, 0x64, 0x12, 0x12,
 	0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61,
 	0x6d, 0x65, 0x12, 0x4d, 0x0a, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x18, 0x03, 0x20, 0x01,
@@ -227,39 +278,53 @@ var file_src_main_proto_team_proto_rawDesc = []byte{
 }
 
 var (
-	file_src_main_proto_team_proto_rawDescOnce sync.Once
-	file_src_main_proto_team_proto_rawDescData = file_src_main_proto_team_proto_rawDesc
+	file_team_proto_rawDescOnce sync.Once
+	file_team_proto_rawDescData = file_team_proto_rawDesc
 )
 
-func file_src_main_proto_team_proto_rawDescGZIP() []byte {
-	file_src_main_proto_team_proto_rawDescOnce.Do(func() {
-		file_src_main_proto_team_proto_rawDescData = protoimpl.X.CompressGZIP(file_src_main_proto_team_proto_rawDescData)
+func file_team_proto_rawDescGZIP() []byte {
+	file_team_proto_rawDescOnce.Do(func() {
+		file_team_proto_rawDescData = protoimpl.X.CompressGZIP(file_team_proto_rawDescData)
 	})
-	return file_src_main_proto_team_proto_rawDescData
+	return file_team_proto_rawDescData
 }
 
-var file_src_main_proto_team_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_src_main_proto_team_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_src_main_proto_team_proto_goTypes = []interface{}{
+var file_team_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_team_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_team_proto_goTypes = []interface{}{
 	(Team_Status)(0), // 0: io.github.patxibocos.pcsscraper.protobuf.Team.Status
-	(*Team)(nil),     // 1: io.github.patxibocos.pcsscraper.protobuf.Team
+	(*Teams)(nil),    // 1: io.github.patxibocos.pcsscraper.protobuf.Teams
+	(*Team)(nil),     // 2: io.github.patxibocos.pcsscraper.protobuf.Team
 }
-var file_src_main_proto_team_proto_depIdxs = []int32{
-	0, // 0: io.github.patxibocos.pcsscraper.protobuf.Team.status:type_name -> io.github.patxibocos.pcsscraper.protobuf.Team.Status
-	1, // [1:1] is the sub-list for method output_type
-	1, // [1:1] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+var file_team_proto_depIdxs = []int32{
+	2, // 0: io.github.patxibocos.pcsscraper.protobuf.Teams.teams:type_name -> io.github.patxibocos.pcsscraper.protobuf.Team
+	0, // 1: io.github.patxibocos.pcsscraper.protobuf.Team.status:type_name -> io.github.patxibocos.pcsscraper.protobuf.Team.Status
+	2, // [2:2] is the sub-list for method output_type
+	2, // [2:2] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
-func init() { file_src_main_proto_team_proto_init() }
-func file_src_main_proto_team_proto_init() {
-	if File_src_main_proto_team_proto != nil {
+func init() { file_team_proto_init() }
+func file_team_proto_init() {
+	if File_team_proto != nil {
 		return
 	}
 	if !protoimpl.UnsafeEnabled {
-		file_src_main_proto_team_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+		file_team_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Teams); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_team_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Team); i {
 			case 0:
 				return &v.state
@@ -272,24 +337,24 @@ func file_src_main_proto_team_proto_init() {
 			}
 		}
 	}
-	file_src_main_proto_team_proto_msgTypes[0].OneofWrappers = []interface{}{}
+	file_team_proto_msgTypes[1].OneofWrappers = []interface{}{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_src_main_proto_team_proto_rawDesc,
+			RawDescriptor: file_team_proto_rawDesc,
 			NumEnums:      1,
-			NumMessages:   1,
+			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_src_main_proto_team_proto_goTypes,
-		DependencyIndexes: file_src_main_proto_team_proto_depIdxs,
-		EnumInfos:         file_src_main_proto_team_proto_enumTypes,
-		MessageInfos:      file_src_main_proto_team_proto_msgTypes,
+		GoTypes:           file_team_proto_goTypes,
+		DependencyIndexes: file_team_proto_depIdxs,
+		EnumInfos:         file_team_proto_enumTypes,
+		MessageInfos:      file_team_proto_msgTypes,
 	}.Build()
-	File_src_main_proto_team_proto = out.File
-	file_src_main_proto_team_proto_rawDesc = nil
-	file_src_main_proto_team_proto_goTypes = nil
-	file_src_main_proto_team_proto_depIdxs = nil
+	File_team_proto = out.File
+	file_team_proto_rawDesc = nil
+	file_team_proto_goTypes = nil
+	file_team_proto_depIdxs = nil
 }
