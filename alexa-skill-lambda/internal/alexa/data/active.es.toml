@@ -35,7 +35,7 @@ other = "Hoy se disputa {{.Race}}, pero todavía no tengo los resultados. Vuelve
 other = "Hoy se ha disputado la {{.StageName}} etapa de {{.Race}}. El ganador ha sido {{.First}}, segundo {{.Second}}, y tercero {{.Third}}"
 
 [RaceResultGeneralClassification]
-other = "En la clasificación queda primero {{.First}}, segundo {{.GapFromFirstToSecond}} {{.Second}}, y tercero {{.GapFromSecondToThird}} {{.Third}}"
+other = "En la clasificación está primero {{.First}}, segundo {{.GapFromFirstToSecond}} {{.Second}}, y tercero {{.GapFromSecondToThird}} {{.Third}}"
 
 [FirstStage]
 other = "primera"
@@ -62,7 +62,7 @@ one = "y {{.Seconds}} segundo"
 other = "y {{.Seconds}} segundos"
 
 [RaceResultMultiStageWithoutResults]
-other = "Hoy se disputa la {{.StageName}} etapa de {{.Race}}, pero todavía no tengo los resultados. Vuelve a preguntarme en un rato"
+other = "Hoy se disputa la {{.StageName}} etapa de {{.Race}}, pero todavía no tengo los resultados."
 
 [TomorrowStageQuestion]
 other = "¿Quieres saber cómo es la etapa de mañana?"
@@ -136,3 +136,6 @@ other = "Algo ha ido mal y no he podido ponerte el recordatorio"
 
 [Ooops]
 other = "Vaya"
+
+[GeneralClassificationQuestion]
+other = "¿Quieres saber cómo está la clasificación general?"
