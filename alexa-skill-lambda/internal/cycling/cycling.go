@@ -11,7 +11,7 @@ const MillisModulo = 60000
 
 func GetRaceResult(race *pcsscraper.Race, riders []*pcsscraper.Rider) RaceResult {
 	if raceIsFromThePast(race) {
-		return &PastRace{GcTop3: getTop3FromResult(race.Result, riders)}
+		return &PastRace{GcTop3: GetTop3FromResult(race.Result, riders)}
 	}
 	if raceIsFromTheFuture(race) {
 		return new(FutureRace)
@@ -19,7 +19,7 @@ func GetRaceResult(race *pcsscraper.Race, riders []*pcsscraper.Rider) RaceResult
 	if IsSingleDayRace(race) {
 		if areStageResultsAvailable(race.Stages[0]) {
 			return &SingleDayRaceWithResults{
-				Top3: getTop3FromResult(race.Stages[0].Result, riders),
+				Top3: GetTop3FromResult(race.Stages[0].Result, riders),
 			}
 		} else {
 			return new(SingleDayRaceWithoutResults)
@@ -31,8 +31,8 @@ func GetRaceResult(race *pcsscraper.Race, riders []*pcsscraper.Rider) RaceResult
 	}
 	if areStageResultsAvailable(todayStage) {
 		return &MultiStageRaceWithResults{
-			Top3:        getTop3FromResult(todayStage.Result, riders),
-			GcTop3:      getTop3FromResult(race.Result, riders),
+			Top3:        GetTop3FromResult(todayStage.Result, riders),
+			GcTop3:      GetTop3FromResult(race.Result, riders),
 			StageNumber: stageNumber,
 		}
 	}
@@ -158,7 +158,7 @@ func findRider(riderID string, riders []*pcsscraper.Rider) *pcsscraper.Rider {
 	return nil
 }
 
-func getTop3FromResult(result []*pcsscraper.RiderResult, riders []*pcsscraper.Rider) *Top3 {
+func GetTop3FromResult(result []*pcsscraper.RiderResult, riders []*pcsscraper.Rider) *Top3 {
 	return &Top3{
 		First: &RiderResult{
 			Rider: findRider(result[0].RiderId, riders),

@@ -20,6 +20,7 @@ const raceAttribute = "race"
 const dayAttribute = "day"
 const stageInfoAttributeValue = "StageInfo"
 const setReminderAttributeValue = "SetReminder"
+const raceGeneralClassificationAttributeValue = "RaceGeneralClassification"
 const raceSlot = "race"
 const daySlot = "day"
 const numberSlot = "number"
@@ -114,6 +115,12 @@ func handleLaunchRequest(request Request, localizer i18nLocalizer, cyclingData *
 			endSession = false
 			addStageInfoQuestionToSession(sessionAttributes, race.Id, tomorrow())
 			messages = append(messages, localizer.localize(localizeParams{key: "TomorrowStageQuestion"}))
+		}
+		if rr, ok := raceResult.(*cycling.MultiStageRaceWithoutResults); ok && rr.StageNumber > 1 {
+			endSession = false
+			sessionAttributes[questionAttribute] = raceGeneralClassificationAttributeValue
+			sessionAttributes[raceAttribute] = race.Id
+			messages = append(messages, localizer.localize(localizeParams{key: "GeneralClassificationQuestion"}))
 		}
 	default:
 		for _, race := range activeRaces {
@@ -293,6 +300,22 @@ func handleYes(request Request, localizer i18nLocalizer, cyclingData *pcsscraper
 			return newResponse().text(localizer.localize(localizeParams{key: "SetReminderFailed"})).shouldEndSession(true)
 		}
 		message := localizer.localize(localizeParams{key: "RaceReminderSet"})
+		return newResponse().text(message).shouldEndSession(true)
+	case raceGeneralClassificationAttributeValue:
+		raceAttribute := request.Session.Attributes[raceAttribute]
+		raceId := fmt.Sprintf("%v", raceAttribute)
+		race := cycling.FindRace(cyclingData.Races, raceId)
+		gcTop3 := cycling.GetTop3FromResult(race.Result, cyclingData.Riders)
+		message := localizer.localize(localizeParams{
+			key: "RaceResultGeneralClassification",
+			data: map[string]interface{}{
+				"First":                riderFullName(gcTop3.First.Rider),
+				"Second":               riderFullName(gcTop3.Second.Rider),
+				"Third":                riderFullName(gcTop3.Third.Rider),
+				"GapFromFirstToSecond": messageForGap(localizer, gcTop3.Second.Time-gcTop3.First.Time),
+				"GapFromSecondToThird": messageForGap(localizer, gcTop3.Third.Time-gcTop3.Second.Time),
+			},
+		})
 		return newResponse().text(message).shouldEndSession(true)
 	}
 	return newResponse().shouldEndSession(true)
