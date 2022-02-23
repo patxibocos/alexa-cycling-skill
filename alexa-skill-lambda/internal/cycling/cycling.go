@@ -95,8 +95,10 @@ func FindMountainsStage(race *pcsscraper.Race) MountainsStage {
 
 func GetRaceStageForDay(race *pcsscraper.Race, day time.Time) RaceStage {
 	var stage *pcsscraper.Stage
+	dayYear, dayMonth, dayDay := day.Date()
 	for _, s := range race.Stages {
-		if s.StartDateTime.AsTime() == day {
+		stageYear, stageMonth, stageDay := s.StartDateTime.AsTime().Date()
+		if stageYear == dayYear && stageMonth == dayMonth && stageDay == dayDay {
 			stage = s
 		}
 	}
@@ -206,7 +208,7 @@ func IsSingleDayRace(race *pcsscraper.Race) bool {
 }
 
 func areStageResultsAvailable(stage *pcsscraper.Stage) bool {
-	return stage.Result != nil && len(stage.Result) > 0
+	return stage.Result != nil && len(stage.Result) >= 3
 }
 
 func today() time.Time {
