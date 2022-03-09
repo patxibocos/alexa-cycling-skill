@@ -48,6 +48,113 @@ func messageForStageWithData(localizer i18nLocalizer, stageWithData *cycling.Sta
 	return strings.Join(messages, ". ")
 }
 
+func messageForTwoRaceResults(localizer i18nLocalizer, race1, race2 *pcsscraper.Race, race1Result, race2Result cycling.RaceResult) string {
+	race1Name := messageForRaceOrStage(localizer, race1, race1Result)
+	race2Name := messageForRaceOrStage(localizer, race2, race2Result)
+	// No results
+	if !raceResultsAvailable(race1Result) && !raceResultsAvailable(race2Result) {
+		return localizer.localize(localizeParams{
+			key:  "TwoRacesWithoutResults",
+			data: map[string]interface{}{"Race1": race1Name, "Race2": race2Name},
+		})
+	}
+	if raceResultsAvailable(race1Result) && raceResultsAvailable(race2Result) {
+		var messages []string
+		messages = append(messages, localizer.localize(localizeParams{
+			key:  "TwoRacesWithResults",
+			data: map[string]interface{}{"FullRaceName1": race1Name, "FullRaceName2": race2Name},
+		}))
+		messages = append(messages, messageForOneRaceWhenBothResultsAvailable(localizer, race1, race1Result))
+		messages = append(messages, messageForOneRaceWhenBothResultsAvailable(localizer, race2, race2Result))
+		return strings.Join(messages, ". ")
+	}
+	if raceResultsAvailable(race1Result) {
+		return messageForTwoRacesWithResultForOne(localizer, race1, race2, race1Result, race2Result)
+	}
+	return messageForTwoRacesWithResultForOne(localizer, race2, race1, race2Result, race1Result)
+}
+
+func messageForOneRaceWhenBothResultsAvailable(localizer i18nLocalizer, race *pcsscraper.Race, raceResult cycling.RaceResult) string {
+	raceName := raceName(race.Id)
+	if cycling.IsSingleDayRace(race) {
+		rr, _ := raceResult.(*cycling.SingleDayRaceWithResults)
+		return localizer.localize(localizeParams{
+			key: "TwoRacesWithResultsSingleDayRace",
+			data: map[string]interface{}{
+				"Race":   raceName,
+				"First":  riderFullName(rr.Top3.First.Rider),
+				"Second": riderFullName(rr.Top3.Second.Rider),
+				"Third":  riderFullName(rr.Top3.Third.Rider),
+			},
+		})
+	}
+	rr, _ := raceResult.(*cycling.MultiStageRaceWithResults)
+	return localizer.localize(localizeParams{
+		key: "TwoRacesWithResultsMultiStageRace",
+		data: map[string]interface{}{
+			"Race":   raceName,
+			"Winner": riderFullName(rr.Top3.First.Rider),
+			"First":  riderFullName(rr.GcTop3.First.Rider),
+			"Second": riderFullName(rr.GcTop3.Second.Rider),
+			"Third":  riderFullName(rr.GcTop3.Third.Rider),
+		},
+	})
+}
+
+func messageForTwoRacesWithResultForOne(localizer i18nLocalizer, raceWithResult, raceWithoutResult *pcsscraper.Race, resultForRaceWithResult, resultForRaceWithoutResult cycling.RaceResult) string {
+	raceWithResultName := messageForRaceOrStage(localizer, raceWithResult, resultForRaceWithResult)
+	raceWithoutResultName := messageForRaceOrStage(localizer, raceWithoutResult, resultForRaceWithoutResult)
+	var messages []string
+	if cycling.IsSingleDayRace(raceWithResult) {
+		rr, _ := resultForRaceWithResult.(*cycling.SingleDayRaceWithResults)
+		messages = append(messages, localizer.localize(localizeParams{
+			key: "RaceResultSingleDayWithResults",
+			data: map[string]interface{}{
+				"Race":   raceWithResultName,
+				"First":  riderFullName(rr.Top3.First.Rider),
+				"Second": riderFullName(rr.Top3.Second.Rider),
+				"Third":  riderFullName(rr.Top3.Third.Rider),
+			},
+		}))
+	} else {
+		rr, _ := resultForRaceWithResult.(*cycling.MultiStageRaceWithResults)
+		messages = append(messages, localizer.localize(localizeParams{
+			key: "RaceResultMultiStageWithResults",
+			data: map[string]interface{}{
+				"MultiStageRaceName": raceWithResultName,
+				"First":              riderFullName(rr.Top3.First.Rider),
+				"Second":             riderFullName(rr.Top3.Second.Rider),
+				"Third":              riderFullName(rr.Top3.Third.Rider),
+			},
+		}))
+		if rr.StageNumber > 1 {
+			messages = append(messages, localizer.localize(localizeParams{
+				key: "RaceResultGeneralClassification",
+				data: map[string]interface{}{
+					"First":                riderFullName(rr.GcTop3.First.Rider),
+					"Second":               riderFullName(rr.GcTop3.Second.Rider),
+					"Third":                riderFullName(rr.GcTop3.Third.Rider),
+					"GapFromFirstToSecond": messageForGap(localizer, rr.GcTop3.Second.Time-rr.GcTop3.First.Time),
+					"GapFromSecondToThird": messageForGap(localizer, rr.GcTop3.Third.Time-rr.GcTop3.Second.Time),
+				},
+			}))
+		}
+	}
+	messages = append(messages, localizer.localize(localizeParams{
+		key: "TwoRacesWithSingleResult",
+		data: map[string]interface{}{
+			"Race": raceWithoutResultName,
+		},
+	}))
+	return strings.Join(messages, ". ")
+}
+
+func raceResultsAvailable(raceResult cycling.RaceResult) bool {
+	_, singleDayResults := raceResult.(*cycling.SingleDayRaceWithResults)
+	_, multiStageResults := raceResult.(*cycling.MultiStageRaceWithResults)
+	return singleDayResults || multiStageResults
+}
+
 func messageForRaceResult(localizer i18nLocalizer, race *pcsscraper.Race, raceResult cycling.RaceResult) string {
 	raceName := raceName(race.Id)
 	switch ri := raceResult.(type) {
@@ -95,16 +202,15 @@ func messageForRaceResult(localizer i18nLocalizer, race *pcsscraper.Race, raceRe
 			},
 		})
 	case *cycling.MultiStageRaceWithResults: // If stageNumber is greater than 1 -> return GC. If it is the last stage -> announce race has ended
-		stageName := messageForStageName(localizer, race, ri.StageNumber)
+		multiStageRaceName := messageForRaceOrStage(localizer, race, ri)
 		var messages []string
 		messages = append(messages, localizer.localize(localizeParams{
 			key: "RaceResultMultiStageWithResults",
 			data: map[string]interface{}{
-				"StageName": stageName,
-				"Race":      raceName,
-				"First":     riderFullName(ri.Top3.First.Rider),
-				"Second":    riderFullName(ri.Top3.Second.Rider),
-				"Third":     riderFullName(ri.Top3.Third.Rider),
+				"MultiStageRaceName": multiStageRaceName,
+				"First":              riderFullName(ri.Top3.First.Rider),
+				"Second":             riderFullName(ri.Top3.Second.Rider),
+				"Third":              riderFullName(ri.Top3.Third.Rider),
 			},
 		}))
 		if ri.StageNumber > 1 {
@@ -121,16 +227,36 @@ func messageForRaceResult(localizer i18nLocalizer, race *pcsscraper.Race, raceRe
 		}
 		return strings.Join(messages, ". ")
 	case *cycling.MultiStageRaceWithoutResults:
-		stageName := messageForStageName(localizer, race, ri.StageNumber)
+		multiStageRaceName := messageForRaceOrStage(localizer, race, ri)
 		return localizer.localize(localizeParams{
 			key: "RaceResultMultiStageWithoutResults",
 			data: map[string]interface{}{
-				"StageName": stageName,
-				"Race":      raceName,
+				"MultiStageRaceName": multiStageRaceName,
 			},
 		})
 	}
 	return ""
+}
+
+func messageForRaceOrStage(localizer i18nLocalizer, race *pcsscraper.Race, raceResult cycling.RaceResult) string {
+	raceName := raceName(race.Id)
+	if cycling.IsSingleDayRace(race) {
+		return raceName
+	}
+	stageName := ""
+	if rr, ok := raceResult.(*cycling.MultiStageRaceWithoutResults); ok {
+		stageName = messageForStageName(localizer, race, rr.StageNumber)
+	}
+	if rr, ok := raceResult.(*cycling.MultiStageRaceWithResults); ok {
+		stageName = messageForStageName(localizer, race, rr.StageNumber)
+	}
+	return localizer.localize(localizeParams{
+		key: "MultiStageRaceName",
+		data: map[string]interface{}{
+			"StageName": stageName,
+			"Race":      raceName,
+		},
+	})
 }
 
 func messageForStageName(localizer i18nLocalizer, race *pcsscraper.Race, stageNumber int) string {
