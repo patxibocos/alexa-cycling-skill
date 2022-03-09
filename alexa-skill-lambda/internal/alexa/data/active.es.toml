@@ -29,13 +29,28 @@ other = "Hoy es día de descanso en {{.Race}}"
 other = "Hoy se ha disputado {{.Race}}. El ganador ha sido {{.First}}, segundo {{.Second}}, y tercero {{.Third}}"
 
 [RaceResultSingleDayWithoutResults]
-other = "Hoy se disputa {{.Race}}, pero todavía no tengo los resultados. Vuelve a preguntarme en un rato"
+other = "Hoy se disputa {{.Race}}, pero todavía no tengo los resultados"
 
 [RaceResultMultiStageWithResults]
-other = "Hoy se ha disputado la {{.StageName}} etapa de {{.Race}}. El ganador ha sido {{.First}}, segundo {{.Second}}, y tercero {{.Third}}"
+other = "Hoy se ha disputado {{.MultiStageRaceName}}. El ganador ha sido {{.First}}, segundo {{.Second}}, y tercero {{.Third}}"
 
 [RaceResultGeneralClassification]
-other = "En la clasificación está primero {{.First}}, segundo {{.GapFromFirstToSecond}} {{.Second}}, y tercero {{.GapFromSecondToThird}} {{.Third}}"
+other = "En la clasificación general está primero {{.First}}, segundo {{.GapFromFirstToSecond}} {{.Second}}, y tercero {{.GapFromSecondToThird}} {{.Third}}"
+
+[TwoRacesWithoutResults]
+other = "Hoy se disputa {{.Race1}} y {{.Race2}}, pero todavía no tengo ningún resultado"
+
+[TwoRacesWithResults]
+other = "Hoy se ha disputado {{.FullRaceName1}} y {{.FullRaceName2}}"
+
+[TwoRacesWithResultsSingleDayRace]
+other = "En {{.Race}} el ganador ha sido {{.First}}, segundo {{.Second}} y tercero {{.Third}}"
+
+[TwoRacesWithResultsMultiStageRace]
+other = "En {{.Race}} el ganador ha sido {{.Winner}}, quedando en la clasificación general primero {{.First}}, segundo {{.Second}}, y tercero {{.Third}}"
+
+[TwoRacesWithSingleResult]
+other = "Hoy también se disputa {{.Race}} pero todavía no tengo los resultados"
 
 [FirstStage]
 other = "primera"
@@ -61,8 +76,11 @@ other = "a {{.Minutes}} minutos"
 one = "y {{.Seconds}} segundo"
 other = "y {{.Seconds}} segundos"
 
+[MultiStageRaceName]
+other = "la {{.StageName}} etapa de {{.Race}}"
+
 [RaceResultMultiStageWithoutResults]
-other = "Hoy se disputa la {{.StageName}} etapa de {{.Race}}, pero todavía no tengo los resultados."
+other = "Hoy se disputa {{.MultiStageRaceName}}, pero todavía no tengo los resultados."
 
 [TomorrowStageQuestion]
 other = "¿Quieres saber cómo es la etapa de mañana?"

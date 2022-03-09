@@ -122,12 +122,12 @@ func handleLaunchRequest(request Request, localizer i18nLocalizer, cyclingData *
 			sessionAttributes[raceAttribute] = race.Id
 			messages = append(messages, localizer.localize(localizeParams{key: "GeneralClassificationQuestion"}))
 		}
-	default:
-		for _, race := range activeRaces {
-			raceResult := cycling.GetRaceResult(race, cyclingData.Riders)
-			message := messageForRaceResult(localizer, race, raceResult)
-			messages = append(messages, message)
-		}
+	case 2:
+		race1 := activeRaces[0]
+		race2 := activeRaces[1]
+		race1Result := cycling.GetRaceResult(race1, cyclingData.Riders)
+		race2Result := cycling.GetRaceResult(race2, cyclingData.Riders)
+		messages = append(messages, messageForTwoRaceResults(localizer, race1, race2, race1Result, race2Result))
 	}
 	message := strings.Join(messages, ". ")
 	return newResponse().shouldEndSession(endSession).text(message).sessionAttributes(sessionAttributes)
