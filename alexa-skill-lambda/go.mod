@@ -1,6 +1,6 @@
 module github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda
 
-go 1.17
+go 1.18
 
 require (
 	github.com/BurntSushi/toml v0.3.1
