@@ -240,6 +240,48 @@ func handleMountainsStart(request Request, localizer i18nLocalizer, cyclingData 
 	return newResponse().shouldEndSession(true).text(message)
 }
 
+func handleGeneralClassification(request Request, localizer i18nLocalizer, cyclingData *pcsscraper.CyclingData) Response {
+	intent := request.Body.Intent
+	raceNameSlot := intent.Slots[raceSlot]
+	raceId := raceNameSlot.Resolutions.ResolutionsPerAuthority[0].Values[0].Value.ID
+	race := cycling.FindRace(cyclingData.Races, raceId)
+	raceName := raceName(race.Id)
+	if cycling.RaceHasNotStarted(race) {
+		message := localizer.localize(localizeParams{
+			key: "RaceResultFuture",
+			data: map[string]interface{}{
+				"Race":      raceName,
+				"StartDate": formattedDate(race.StartDate.AsTime()),
+			},
+		})
+		return newResponse().text(message).shouldEndSession(true)
+	}
+	gcTop3 := cycling.GetTop3FromResult(race.Result, cyclingData.Riders)
+	if cycling.RaceIsFinished(race) {
+		message := localizer.localize(localizeParams{
+			key: "GeneralClassificationComplete",
+			data: map[string]interface{}{
+				"First":  riderFullName(gcTop3.First.Rider),
+				"Second": riderFullName(gcTop3.Second.Rider),
+				"Third":  riderFullName(gcTop3.Third.Rider),
+				"Race":   raceName,
+			},
+		})
+		return newResponse().text(message).shouldEndSession(true)
+	}
+	message := localizer.localize(localizeParams{
+		key: "RaceResultGeneralClassification",
+		data: map[string]interface{}{
+			"First":                riderFullName(gcTop3.First.Rider),
+			"Second":               riderFullName(gcTop3.Second.Rider),
+			"Third":                riderFullName(gcTop3.Third.Rider),
+			"GapFromFirstToSecond": messageForGap(localizer, gcTop3.Second.Time-gcTop3.First.Time),
+			"GapFromSecondToThird": messageForGap(localizer, gcTop3.Third.Time-gcTop3.Second.Time),
+		},
+	})
+	return newResponse().text(message).shouldEndSession(true)
+}
+
 func handleNo(_ Request, _ i18nLocalizer, _ *pcsscraper.CyclingData) Response {
 	return newResponse().shouldEndSession(true)
 }

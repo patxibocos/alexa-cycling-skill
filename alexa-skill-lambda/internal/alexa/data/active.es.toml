@@ -37,6 +37,9 @@ other = "Hoy se ha disputado {{.MultiStageRaceName}}. El ganador ha sido {{.Firs
 [RaceResultGeneralClassification]
 other = "En la clasificación general está primero {{.First}}, segundo {{.GapFromFirstToSecond}} {{.Second}}, y tercero {{.GapFromSecondToThird}} {{.Third}}"
 
+[GeneralClassificationComplete]
+other = "En {{.Race}} quedó primero {{.First}}, segundo {{.Second}}, y tercero {{.Third}}"
+
 [TwoRacesWithoutResults]
 other = "Hoy se disputa {{.Race1}} y {{.Race2}}, pero todavía no tengo ningún resultado"
 
