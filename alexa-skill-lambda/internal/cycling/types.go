@@ -57,6 +57,7 @@ type StageWithData struct {
 	Distance  float32
 	Type      pcsscraper.Stage_Type
 	StartDate *timestamppb.Timestamp
+	TimeTrial bool
 }
 type StageWithoutData struct {
 	StartDate *timestamppb.Timestamp
