@@ -4,12 +4,13 @@ import (
 	"crypto/sha1"
 	"encoding/binary"
 	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/pcsscraper"
+	"strings"
 	"time"
 )
 
 const MillisModulo = 60000
 
-func GetRaceResult(race *pcsscraper.Race, riders []*pcsscraper.Rider) RaceResult {
+func GetRaceResult(race *pcsscraper.Race, riders []*pcsscraper.Rider, teams []*pcsscraper.Team) RaceResult {
 	if raceIsFromThePast(race) {
 		return &PastRace{GcTop3: GetTop3FromResult(race.Result, riders)}
 	}
@@ -30,6 +31,13 @@ func GetRaceResult(race *pcsscraper.Race, riders []*pcsscraper.Rider) RaceResult
 		return new(RestDayStage)
 	}
 	if areStageResultsAvailable(todayStage) {
+		if isTeamTimeTrial(todayStage) {
+			return &MultiTTTStageRaceWithResults{
+				Top3Teams:   GetTop3TeamsFromResult(todayStage.Result, teams),
+				GcTop3:      GetTop3FromResult(race.Result, riders),
+				StageNumber: stageNumber,
+			}
+		}
 		return &MultiStageRaceWithResults{
 			Top3:        GetTop3FromResult(todayStage.Result, riders),
 			GcTop3:      GetTop3FromResult(race.Result, riders),
@@ -162,19 +170,45 @@ func findRider(riderID string, riders []*pcsscraper.Rider) *pcsscraper.Rider {
 	return nil
 }
 
-func GetTop3FromResult(result []*pcsscraper.RiderResult, riders []*pcsscraper.Rider) *Top3 {
+func findTeam(teamID string, teams []*pcsscraper.Team) *pcsscraper.Team {
+	for _, team := range teams {
+		if teamID == team.Id {
+			return team
+		}
+	}
+	return nil
+}
+
+func GetTop3FromResult(result []*pcsscraper.ParticipantResult, riders []*pcsscraper.Rider) *Top3 {
 	return &Top3{
 		First: &RiderResult{
-			Rider: findRider(result[0].RiderId, riders),
+			Rider: findRider(result[0].ParticipantId, riders),
 			Time:  result[0].Time,
 		},
 		Second: &RiderResult{
-			Rider: findRider(result[1].RiderId, riders),
+			Rider: findRider(result[1].ParticipantId, riders),
 			Time:  result[1].Time,
 		},
 		Third: &RiderResult{
-			Rider: findRider(result[2].RiderId, riders),
+			Rider: findRider(result[2].ParticipantId, riders),
 			Time:  result[2].Time,
+		},
+	}
+}
+
+func GetTop3TeamsFromResult(result []*pcsscraper.ParticipantResult, teams []*pcsscraper.Team) *Top3Teams {
+	return &Top3Teams{
+		First: &TeamResult{
+			Team: findTeam(result[0].ParticipantId, teams),
+			Time: result[0].Time,
+		},
+		Second: &TeamResult{
+			Team: findTeam(result[1].ParticipantId, teams),
+			Time: result[1].Time,
+		},
+		Third: &TeamResult{
+			Team: findTeam(result[2].ParticipantId, teams),
+			Time: result[2].Time,
 		},
 	}
 }
@@ -186,7 +220,7 @@ func raceIsActive(race *pcsscraper.Race) bool {
 }
 
 func findTodayStage(race *pcsscraper.Race) (*pcsscraper.Stage, int) {
-	today := today()
+	today := today().Add(-24 * time.Hour)
 	for i, stage := range race.Stages {
 		stageYear, stageMonth, stageDay := stage.StartDateTime.AsTime().Date()
 		todayYear, todayMonth, todayDay := today.Date()
@@ -219,6 +253,10 @@ func IsSingleDayRace(race *pcsscraper.Race) bool {
 
 func areStageResultsAvailable(stage *pcsscraper.Stage) bool {
 	return stage.Result != nil && len(stage.Result) >= 3
+}
+
+func isTeamTimeTrial(stage *pcsscraper.Stage) bool {
+	return stage.TimeTrial && strings.Contains(stage.Result[0].ParticipantId, "team/")
 }
 
 func today() time.Time {

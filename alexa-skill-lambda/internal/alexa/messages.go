@@ -226,6 +226,18 @@ func messageForRaceResult(localizer i18nLocalizer, race *pcsscraper.Race, raceRe
 			}))
 		}
 		return strings.Join(messages, ". ")
+	case *cycling.MultiTTTStageRaceWithResults:
+		multiStageRaceName := messageForRaceOrStage(localizer, race, ri)
+		var messages []string
+		messages = append(messages, localizer.localize(localizeParams{
+			key: "RaceResultMultiTTTStageWithResults",
+			data: map[string]interface{}{
+				"MultiStageRaceName": multiStageRaceName,
+				"First":              ri.Top3Teams.First.Team.Name,
+				"Second":             ri.Top3Teams.Second.Team.Name,
+				"Third":              ri.Top3Teams.Third.Team.Name,
+			},
+		}))
 	case *cycling.MultiStageRaceWithoutResults:
 		multiStageRaceName := messageForRaceOrStage(localizer, race, ri)
 		return localizer.localize(localizeParams{
@@ -248,6 +260,9 @@ func messageForRaceOrStage(localizer i18nLocalizer, race *pcsscraper.Race, raceR
 		stageName = messageForStageName(localizer, race, rr.StageNumber)
 	}
 	if rr, ok := raceResult.(*cycling.MultiStageRaceWithResults); ok {
+		stageName = messageForStageName(localizer, race, rr.StageNumber)
+	}
+	if rr, ok := raceResult.(*cycling.MultiTTTStageRaceWithResults); ok {
 		stageName = messageForStageName(localizer, race, rr.StageNumber)
 	}
 	return localizer.localize(localizeParams{

@@ -27,6 +27,11 @@ type MultiStageRaceWithResults struct {
 	Top3        *Top3
 	GcTop3      *Top3
 }
+type MultiTTTStageRaceWithResults struct {
+	StageNumber int
+	Top3Teams   *Top3Teams
+	GcTop3      *Top3
+}
 type MultiStageRaceWithoutResults struct {
 	StageNumber int
 }
@@ -35,6 +40,17 @@ type Top3 struct {
 	First  *RiderResult
 	Second *RiderResult
 	Third  *RiderResult
+}
+
+type Top3Teams struct {
+	First  *TeamResult
+	Second *TeamResult
+	Third  *TeamResult
+}
+
+type TeamResult struct {
+	Team *pcsscraper.Team
+	Time int64
 }
 
 type RiderResult struct {
@@ -48,6 +64,7 @@ func (_ RestDayStage) isRaceResult()                 {}
 func (_ SingleDayRaceWithResults) isRaceResult()     {}
 func (_ SingleDayRaceWithoutResults) isRaceResult()  {}
 func (_ MultiStageRaceWithResults) isRaceResult()    {}
+func (_ MultiTTTStageRaceWithResults) isRaceResult() {}
 func (_ MultiStageRaceWithoutResults) isRaceResult() {}
 
 type NoStage struct{}
