@@ -35,7 +35,7 @@ other = "Hoy se disputa {{.Race}}, pero todavía no tengo los resultados"
 other = "Hoy se ha disputado {{.MultiStageRaceName}}. El ganador ha sido {{.First}}, segundo {{.Second}}, y tercero {{.Third}}"
 
 [RaceResultMultiTTTStageWithResults]
-other = "Hoy se ha disputado contrarreloj por equipos en {{.MultiStageRaceName}}. El equipo ganador ha sido {{.First}}, segundo {{.Second}}, y tercero {{.Third}}"
+other = "Hoy se ha disputado la contrarreloj por equipos en {{.MultiStageRaceName}}. El equipo ganador ha sido {{.First}}, segundo {{.Second}}, y tercero {{.Third}}"
 
 [RaceResultGeneralClassification]
 other = "En la clasificación general está primero {{.First}}, segundo {{.GapFromFirstToSecond}} {{.Second}}, y tercero {{.GapFromSecondToThird}} {{.Third}}"

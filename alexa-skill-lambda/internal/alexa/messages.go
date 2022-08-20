@@ -38,10 +38,10 @@ func messageForStageWithData(localizer i18nLocalizer, stageWithData *cycling.Sta
 		})
 		messages = append(messages, message)
 	}
-	if stageWithData.Type != pcsscraper.Stage_TYPE_UNSPECIFIED {
+	if stageWithData.ProfileType != pcsscraper.Stage_PROFILE_TYPE_UNSPECIFIED {
 		message := localizer.localize(localizeParams{
 			key:  "StageDataType",
-			data: map[string]interface{}{"Type": messageForStageType(localizer, stageWithData.Type)},
+			data: map[string]interface{}{"Type": messageForStageType(localizer, stageWithData.ProfileType)},
 		})
 		messages = append(messages, message)
 	}
@@ -228,8 +228,7 @@ func messageForRaceResult(localizer i18nLocalizer, race *pcsscraper.Race, raceRe
 		return strings.Join(messages, ". ")
 	case *cycling.MultiTTTStageRaceWithResults:
 		multiStageRaceName := messageForRaceOrStage(localizer, race, ri)
-		var messages []string
-		messages = append(messages, localizer.localize(localizeParams{
+		return localizer.localize(localizeParams{
 			key: "RaceResultMultiTTTStageWithResults",
 			data: map[string]interface{}{
 				"MultiStageRaceName": multiStageRaceName,
@@ -237,7 +236,7 @@ func messageForRaceResult(localizer i18nLocalizer, race *pcsscraper.Race, raceRe
 				"Second":             ri.Top3Teams.Second.Team.Name,
 				"Third":              ri.Top3Teams.Third.Team.Name,
 			},
-		}))
+		})
 	case *cycling.MultiStageRaceWithoutResults:
 		multiStageRaceName := messageForRaceOrStage(localizer, race, ri)
 		return localizer.localize(localizeParams{
@@ -286,18 +285,18 @@ func messageForStageName(localizer i18nLocalizer, race *pcsscraper.Race, stageNu
 	return stageName
 }
 
-func messageForStageType(localizer i18nLocalizer, stageType pcsscraper.Stage_Type) string {
+func messageForStageType(localizer i18nLocalizer, stageType pcsscraper.Stage_ProfileType) string {
 	var messageKey string
 	switch stageType {
-	case pcsscraper.Stage_TYPE_FLAT:
+	case pcsscraper.Stage_PROFILE_TYPE_FLAT:
 		messageKey = "StageTypeFlat"
-	case pcsscraper.Stage_TYPE_HILLS_FLAT_FINISH:
+	case pcsscraper.Stage_PROFILE_TYPE_HILLS_FLAT_FINISH:
 		messageKey = "StageTypeHillsFlatFinish"
-	case pcsscraper.Stage_TYPE_HILLS_UPHILL_FINISH:
+	case pcsscraper.Stage_PROFILE_TYPE_HILLS_UPHILL_FINISH:
 		messageKey = "StageTypeHillsUphillFinish"
-	case pcsscraper.Stage_TYPE_MOUNTAINS_FLAT_FINISH:
+	case pcsscraper.Stage_PROFILE_TYPE_MOUNTAINS_FLAT_FINISH:
 		messageKey = "StageTypeMountainsFlatFinish"
-	case pcsscraper.Stage_TYPE_MOUNTAINS_UPHILL_FINISH:
+	case pcsscraper.Stage_PROFILE_TYPE_MOUNTAINS_UPHILL_FINISH:
 		messageKey = "StageTypeMountainsUphillFinish"
 	}
 	return localizer.localize(localizeParams{key: messageKey})

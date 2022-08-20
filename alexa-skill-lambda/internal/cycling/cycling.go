@@ -4,7 +4,6 @@ import (
 	"crypto/sha1"
 	"encoding/binary"
 	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/pcsscraper"
-	"strings"
 	"time"
 )
 
@@ -88,14 +87,14 @@ func FindMountainsStage(race *pcsscraper.Race) MountainsStage {
 		return new(SingleDayRace)
 	}
 	for i, stage := range race.Stages {
-		if stage.Type == pcsscraper.Stage_TYPE_MOUNTAINS_FLAT_FINISH || stage.Type == pcsscraper.Stage_TYPE_MOUNTAINS_UPHILL_FINISH {
+		if stage.ProfileType == pcsscraper.Stage_PROFILE_TYPE_MOUNTAINS_FLAT_FINISH || stage.ProfileType == pcsscraper.Stage_PROFILE_TYPE_MOUNTAINS_UPHILL_FINISH {
 			return &YesMountainsStage{
 				StageNumber: i + 1,
 				StartDate:   stage.StartDateTime,
 			}
 		}
 	}
-	if race.Stages[0].Type == pcsscraper.Stage_TYPE_UNSPECIFIED {
+	if race.Stages[0].ProfileType == pcsscraper.Stage_PROFILE_TYPE_UNSPECIFIED {
 		return new(NoStageTypeData)
 	}
 	return new(NoMountainsStage)
@@ -123,12 +122,12 @@ func GetRaceStageForDay(race *pcsscraper.Race, day time.Time) RaceStage {
 		}
 	}
 	return &StageWithData{
-		Departure: stage.GetDeparture(),
-		Arrival:   stage.GetArrival(),
-		Distance:  stage.GetDistance(),
-		Type:      stage.GetType(),
-		StartDate: stage.StartDateTime,
-		TimeTrial: stage.TimeTrial,
+		Departure:   stage.GetDeparture(),
+		Arrival:     stage.GetArrival(),
+		Distance:    stage.GetDistance(),
+		ProfileType: stage.GetProfileType(),
+		StartDate:   stage.StartDateTime,
+		StageType:   stage.StageType,
 	}
 }
 
@@ -148,17 +147,17 @@ func GetRaceStageForIndex(race *pcsscraper.Race, index int) RaceStage {
 		}
 	}
 	return &StageWithData{
-		Departure: stage.GetDeparture(),
-		Arrival:   stage.GetArrival(),
-		Distance:  stage.GetDistance(),
-		Type:      stage.GetType(),
-		StartDate: stage.GetStartDateTime(),
-		TimeTrial: stage.TimeTrial,
+		Departure:   stage.GetDeparture(),
+		Arrival:     stage.GetArrival(),
+		Distance:    stage.GetDistance(),
+		ProfileType: stage.GetProfileType(),
+		StartDate:   stage.GetStartDateTime(),
+		StageType:   stage.GetStageType(),
 	}
 }
 
 func StageContainsData(stage *pcsscraper.Stage) bool {
-	return (stage.GetDeparture() != "" && stage.GetArrival() != "") || stage.GetDistance() > 0 || stage.GetType() != pcsscraper.Stage_TYPE_UNSPECIFIED
+	return (stage.GetDeparture() != "" && stage.GetArrival() != "") || stage.GetDistance() > 0 || stage.GetProfileType() != pcsscraper.Stage_PROFILE_TYPE_UNSPECIFIED
 }
 
 func findRider(riderID string, riders []*pcsscraper.Rider) *pcsscraper.Rider {
@@ -220,7 +219,7 @@ func raceIsActive(race *pcsscraper.Race) bool {
 }
 
 func findTodayStage(race *pcsscraper.Race) (*pcsscraper.Stage, int) {
-	today := today().Add(-24 * time.Hour)
+	today := today()
 	for i, stage := range race.Stages {
 		stageYear, stageMonth, stageDay := stage.StartDateTime.AsTime().Date()
 		todayYear, todayMonth, todayDay := today.Date()
@@ -256,7 +255,7 @@ func areStageResultsAvailable(stage *pcsscraper.Stage) bool {
 }
 
 func isTeamTimeTrial(stage *pcsscraper.Stage) bool {
-	return stage.TimeTrial && strings.Contains(stage.Result[0].ParticipantId, "team/")
+	return stage.StageType == pcsscraper.Stage_STAGE_TYPE_TEAM_TIME_TRIAL
 }
 
 func today() time.Time {

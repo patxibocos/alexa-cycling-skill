@@ -69,12 +69,12 @@ func (_ MultiStageRaceWithoutResults) isRaceResult() {}
 
 type NoStage struct{}
 type StageWithData struct {
-	Departure string
-	Arrival   string
-	Distance  float32
-	Type      pcsscraper.Stage_Type
-	StartDate *timestamppb.Timestamp
-	TimeTrial bool
+	Departure   string
+	Arrival     string
+	Distance    float32
+	ProfileType pcsscraper.Stage_ProfileType
+	StartDate   *timestamppb.Timestamp
+	StageType   pcsscraper.Stage_StageType
 }
 type StageWithoutData struct {
 	StartDate *timestamppb.Timestamp
