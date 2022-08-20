@@ -49,7 +49,7 @@ func handleRaceResult(request Request, localizer i18nLocalizer, cyclingData *pcs
 	raceNameSlot := intent.Slots[raceSlot]
 	raceId := raceNameSlot.Resolutions.ResolutionsPerAuthority[0].Values[0].Value.ID
 	race := cycling.FindRace(cyclingData.Races, raceId)
-	raceResult := cycling.GetRaceResult(race, cyclingData.Riders)
+	raceResult := cycling.GetRaceResult(race, cyclingData.Riders, cyclingData.Teams)
 	var messages []string
 	messages = append(messages, messageForRaceResult(localizer, race, raceResult))
 	endSession := true
@@ -109,7 +109,7 @@ func handleLaunchRequest(request Request, localizer i18nLocalizer, cyclingData *
 		}
 	case 1:
 		race := activeRaces[0]
-		raceResult := cycling.GetRaceResult(race, cyclingData.Riders)
+		raceResult := cycling.GetRaceResult(race, cyclingData.Riders, cyclingData.Teams)
 		messages = append(messages, messageForRaceResult(localizer, race, raceResult))
 		if rr, ok := raceResult.(*cycling.MultiStageRaceWithResults); ok && !cycling.IsLastRaceStage(race, rr.StageNumber) && cycling.StageContainsData(race.Stages[rr.StageNumber]) {
 			endSession = false
@@ -125,8 +125,8 @@ func handleLaunchRequest(request Request, localizer i18nLocalizer, cyclingData *
 	case 2:
 		race1 := activeRaces[0]
 		race2 := activeRaces[1]
-		race1Result := cycling.GetRaceResult(race1, cyclingData.Riders)
-		race2Result := cycling.GetRaceResult(race2, cyclingData.Riders)
+		race1Result := cycling.GetRaceResult(race1, cyclingData.Riders, cyclingData.Teams)
+		race2Result := cycling.GetRaceResult(race2, cyclingData.Riders, cyclingData.Teams)
 		messages = append(messages, messageForTwoRaceResults(localizer, race1, race2, race1Result, race2Result))
 	}
 	message := strings.Join(messages, ". ")

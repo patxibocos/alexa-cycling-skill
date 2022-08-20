@@ -9,7 +9,7 @@ import (
 
 const MillisModulo = 60000
 
-func GetRaceResult(race *pcsscraper.Race, riders []*pcsscraper.Rider) RaceResult {
+func GetRaceResult(race *pcsscraper.Race, riders []*pcsscraper.Rider, teams []*pcsscraper.Team) RaceResult {
 	if raceIsFromThePast(race) {
 		return &PastRace{GcTop3: GetTop3FromResult(race.Result, riders)}
 	}
@@ -30,6 +30,13 @@ func GetRaceResult(race *pcsscraper.Race, riders []*pcsscraper.Rider) RaceResult
 		return new(RestDayStage)
 	}
 	if areStageResultsAvailable(todayStage) {
+		if isTeamTimeTrial(todayStage) {
+			return &MultiTTTStageRaceWithResults{
+				Top3Teams:   GetTop3TeamsFromResult(todayStage.Result, teams),
+				GcTop3:      GetTop3FromResult(race.Result, riders),
+				StageNumber: stageNumber,
+			}
+		}
 		return &MultiStageRaceWithResults{
 			Top3:        GetTop3FromResult(todayStage.Result, riders),
 			GcTop3:      GetTop3FromResult(race.Result, riders),
@@ -80,14 +87,14 @@ func FindMountainsStage(race *pcsscraper.Race) MountainsStage {
 		return new(SingleDayRace)
 	}
 	for i, stage := range race.Stages {
-		if stage.Type == pcsscraper.Stage_TYPE_MOUNTAINS_FLAT_FINISH || stage.Type == pcsscraper.Stage_TYPE_MOUNTAINS_UPHILL_FINISH {
+		if stage.ProfileType == pcsscraper.Stage_PROFILE_TYPE_MOUNTAINS_FLAT_FINISH || stage.ProfileType == pcsscraper.Stage_PROFILE_TYPE_MOUNTAINS_UPHILL_FINISH {
 			return &YesMountainsStage{
 				StageNumber: i + 1,
 				StartDate:   stage.StartDateTime,
 			}
 		}
 	}
-	if race.Stages[0].Type == pcsscraper.Stage_TYPE_UNSPECIFIED {
+	if race.Stages[0].ProfileType == pcsscraper.Stage_PROFILE_TYPE_UNSPECIFIED {
 		return new(NoStageTypeData)
 	}
 	return new(NoMountainsStage)
@@ -115,12 +122,12 @@ func GetRaceStageForDay(race *pcsscraper.Race, day time.Time) RaceStage {
 		}
 	}
 	return &StageWithData{
-		Departure: stage.GetDeparture(),
-		Arrival:   stage.GetArrival(),
-		Distance:  stage.GetDistance(),
-		Type:      stage.GetType(),
-		StartDate: stage.StartDateTime,
-		TimeTrial: stage.TimeTrial,
+		Departure:   stage.GetDeparture(),
+		Arrival:     stage.GetArrival(),
+		Distance:    stage.GetDistance(),
+		ProfileType: stage.GetProfileType(),
+		StartDate:   stage.StartDateTime,
+		StageType:   stage.StageType,
 	}
 }
 
@@ -140,17 +147,17 @@ func GetRaceStageForIndex(race *pcsscraper.Race, index int) RaceStage {
 		}
 	}
 	return &StageWithData{
-		Departure: stage.GetDeparture(),
-		Arrival:   stage.GetArrival(),
-		Distance:  stage.GetDistance(),
-		Type:      stage.GetType(),
-		StartDate: stage.GetStartDateTime(),
-		TimeTrial: stage.TimeTrial,
+		Departure:   stage.GetDeparture(),
+		Arrival:     stage.GetArrival(),
+		Distance:    stage.GetDistance(),
+		ProfileType: stage.GetProfileType(),
+		StartDate:   stage.GetStartDateTime(),
+		StageType:   stage.GetStageType(),
 	}
 }
 
 func StageContainsData(stage *pcsscraper.Stage) bool {
-	return (stage.GetDeparture() != "" && stage.GetArrival() != "") || stage.GetDistance() > 0 || stage.GetType() != pcsscraper.Stage_TYPE_UNSPECIFIED
+	return (stage.GetDeparture() != "" && stage.GetArrival() != "") || stage.GetDistance() > 0 || stage.GetProfileType() != pcsscraper.Stage_PROFILE_TYPE_UNSPECIFIED
 }
 
 func findRider(riderID string, riders []*pcsscraper.Rider) *pcsscraper.Rider {
@@ -162,19 +169,45 @@ func findRider(riderID string, riders []*pcsscraper.Rider) *pcsscraper.Rider {
 	return nil
 }
 
-func GetTop3FromResult(result []*pcsscraper.RiderResult, riders []*pcsscraper.Rider) *Top3 {
+func findTeam(teamID string, teams []*pcsscraper.Team) *pcsscraper.Team {
+	for _, team := range teams {
+		if teamID == team.Id {
+			return team
+		}
+	}
+	return nil
+}
+
+func GetTop3FromResult(result []*pcsscraper.ParticipantResult, riders []*pcsscraper.Rider) *Top3 {
 	return &Top3{
 		First: &RiderResult{
-			Rider: findRider(result[0].RiderId, riders),
+			Rider: findRider(result[0].ParticipantId, riders),
 			Time:  result[0].Time,
 		},
 		Second: &RiderResult{
-			Rider: findRider(result[1].RiderId, riders),
+			Rider: findRider(result[1].ParticipantId, riders),
 			Time:  result[1].Time,
 		},
 		Third: &RiderResult{
-			Rider: findRider(result[2].RiderId, riders),
+			Rider: findRider(result[2].ParticipantId, riders),
 			Time:  result[2].Time,
+		},
+	}
+}
+
+func GetTop3TeamsFromResult(result []*pcsscraper.ParticipantResult, teams []*pcsscraper.Team) *Top3Teams {
+	return &Top3Teams{
+		First: &TeamResult{
+			Team: findTeam(result[0].ParticipantId, teams),
+			Time: result[0].Time,
+		},
+		Second: &TeamResult{
+			Team: findTeam(result[1].ParticipantId, teams),
+			Time: result[1].Time,
+		},
+		Third: &TeamResult{
+			Team: findTeam(result[2].ParticipantId, teams),
+			Time: result[2].Time,
 		},
 	}
 }
@@ -219,6 +252,10 @@ func IsSingleDayRace(race *pcsscraper.Race) bool {
 
 func areStageResultsAvailable(stage *pcsscraper.Stage) bool {
 	return stage.Result != nil && len(stage.Result) >= 3
+}
+
+func isTeamTimeTrial(stage *pcsscraper.Stage) bool {
+	return stage.StageType == pcsscraper.Stage_STAGE_TYPE_TEAM_TIME_TRIAL
 }
 
 func today() time.Time {

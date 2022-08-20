@@ -15,11 +15,11 @@ func TestPastRace(t *testing.T) {
 	race := &pcsscraper.Race{
 		StartDate: timestamppb.New(yesterday),
 		EndDate:   timestamppb.New(yesterday),
-		Result:    []*pcsscraper.RiderResult{{RiderId: "ID1"}, {RiderId: "ID2"}, {RiderId: "ID3"}},
+		Result:    []*pcsscraper.ParticipantResult{{ParticipantId: "ID1"}, {ParticipantId: "ID2"}, {ParticipantId: "ID3"}},
 	}
 	riders := []*pcsscraper.Rider{{Id: "ID1"}, {Id: "ID2"}, {Id: "ID3"}}
 
-	raceResult := GetRaceResult(race, riders)
+	raceResult := GetRaceResult(race, riders, nil)
 
 	assert.Equal(t, &PastRace{
 		GcTop3: &Top3{
@@ -38,7 +38,7 @@ func TestFutureRace(t *testing.T) {
 		EndDate:   timestamppb.New(dayAfterTomorrow),
 	}
 
-	raceResult := GetRaceResult(race, nil)
+	raceResult := GetRaceResult(race, nil, nil)
 
 	assert.Equal(t, new(FutureRace), raceResult)
 }
@@ -55,7 +55,7 @@ func TestMultiStageRaceWithoutResults(t *testing.T) {
 		},
 	}
 
-	raceResult := GetRaceResult(race, nil)
+	raceResult := GetRaceResult(race, nil, nil)
 
 	assert.Equal(t, &MultiStageRaceWithoutResults{
 		StageNumber: 2,
@@ -70,13 +70,13 @@ func TestMultiStageRaceWithResults(t *testing.T) {
 		EndDate:   timestamppb.New(today),
 		Stages: []*pcsscraper.Stage{
 			{StartDateTime: timestamppb.New(yesterday)},
-			{StartDateTime: timestamppb.New(today), Result: []*pcsscraper.RiderResult{{RiderId: "ID1"}, {RiderId: "ID2"}, {RiderId: "ID3"}}},
+			{StartDateTime: timestamppb.New(today), Result: []*pcsscraper.ParticipantResult{{ParticipantId: "ID1"}, {ParticipantId: "ID2"}, {ParticipantId: "ID3"}}},
 		},
-		Result: []*pcsscraper.RiderResult{{RiderId: "ID1"}, {RiderId: "ID2"}, {RiderId: "ID3"}},
+		Result: []*pcsscraper.ParticipantResult{{ParticipantId: "ID1"}, {ParticipantId: "ID2"}, {ParticipantId: "ID3"}},
 	}
 	riders := []*pcsscraper.Rider{{Id: "ID1"}, {Id: "ID2"}, {Id: "ID3"}}
 
-	raceResult := GetRaceResult(race, riders)
+	raceResult := GetRaceResult(race, riders, nil)
 
 	assert.Equal(t, &MultiStageRaceWithResults{
 		Top3: &Top3{
@@ -103,7 +103,7 @@ func TestSingleDayRaceWithoutResults(t *testing.T) {
 		},
 	}
 
-	raceResult := GetRaceResult(race, nil)
+	raceResult := GetRaceResult(race, nil, nil)
 
 	assert.Equal(t, new(SingleDayRaceWithoutResults), raceResult)
 }
@@ -114,13 +114,13 @@ func TestSingleDayRaceWithResults(t *testing.T) {
 		StartDate: timestamppb.New(today),
 		EndDate:   timestamppb.New(today),
 		Stages: []*pcsscraper.Stage{
-			{StartDateTime: timestamppb.New(today), Result: []*pcsscraper.RiderResult{{RiderId: "ID1"}, {RiderId: "ID2"}, {RiderId: "ID3"}}},
+			{StartDateTime: timestamppb.New(today), Result: []*pcsscraper.ParticipantResult{{ParticipantId: "ID1"}, {ParticipantId: "ID2"}, {ParticipantId: "ID3"}}},
 		},
-		Result: []*pcsscraper.RiderResult{{RiderId: "ID1"}, {RiderId: "ID2"}, {RiderId: "ID3"}},
+		Result: []*pcsscraper.ParticipantResult{{ParticipantId: "ID1"}, {ParticipantId: "ID2"}, {ParticipantId: "ID3"}},
 	}
 	riders := []*pcsscraper.Rider{{Id: "ID1"}, {Id: "ID2"}, {Id: "ID3"}}
 
-	raceResult := GetRaceResult(race, riders)
+	raceResult := GetRaceResult(race, riders, nil)
 
 	assert.Equal(t, &SingleDayRaceWithResults{
 		Top3: &Top3{
@@ -140,7 +140,7 @@ func TestRestDayStage(t *testing.T) {
 		Stages:    []*pcsscraper.Stage{{StartDateTime: timestamppb.New(yesterday)}, {StartDateTime: timestamppb.New(tomorrow)}},
 	}
 
-	raceResult := GetRaceResult(race, nil)
+	raceResult := GetRaceResult(race, nil, nil)
 
 	assert.Equal(t, new(RestDayStage), raceResult)
 }
@@ -227,16 +227,16 @@ func TestStageWithData(t *testing.T) {
 		Departure:     &bilbao,
 		Arrival:       &barcelona,
 		Distance:      123.456,
-		Type:          pcsscraper.Stage_TYPE_MOUNTAINS_UPHILL_FINISH,
+		ProfileType:   pcsscraper.Stage_PROFILE_TYPE_MOUNTAINS_UPHILL_FINISH,
 	}}}
 
 	raceStage := GetRaceStageForDay(race, today)
 
 	assert.Equal(t, &StageWithData{
-		Departure: "Bilbao",
-		Arrival:   "Barcelona",
-		Distance:  123.456,
-		Type:      pcsscraper.Stage_TYPE_MOUNTAINS_UPHILL_FINISH,
-		StartDate: timestamppb.New(today),
+		Departure:   "Bilbao",
+		Arrival:     "Barcelona",
+		Distance:    123.456,
+		ProfileType: pcsscraper.Stage_PROFILE_TYPE_MOUNTAINS_UPHILL_FINISH,
+		StartDate:   timestamppb.New(today),
 	}, raceStage)
 }
