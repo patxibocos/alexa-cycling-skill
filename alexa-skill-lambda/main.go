@@ -8,7 +8,7 @@ import (
 	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/internal/alexa"
 	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/pcsscraper"
 	"google.golang.org/protobuf/proto"
-	"io/ioutil"
+	"io"
 	"os"
 )
 
@@ -30,7 +30,7 @@ func Handler(request alexa.Request) (alexa.Response, error) {
 		Key:    aws.String(s3ObjectKey),
 	})
 	cyclingData := new(pcsscraper.CyclingData)
-	body, _ := ioutil.ReadAll(output.Body)
+	body, _ := io.ReadAll(output.Body)
 	_ = proto.Unmarshal(body, cyclingData)
 	return alexa.RequestHandler(request, cyclingData), nil
 }

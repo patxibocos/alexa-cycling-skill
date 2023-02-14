@@ -8,7 +8,6 @@ import (
 	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/internal/cycling"
 	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/pcsscraper"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
@@ -415,7 +414,7 @@ func buildReminderRequest(scheduledTime time.Time, locale, text string) reminder
 
 func isReminderForRace(race *pcsscraper.Race, request Request) bool {
 	resp, _ := doRequest("GET", "/v1/alerts/reminders", request, nil)
-	responseBytes, _ := ioutil.ReadAll(resp.Body)
+	responseBytes, _ := io.ReadAll(resp.Body)
 	response := new(remindersResponse)
 	_ = json.Unmarshal(responseBytes, response)
 	if response.TotalCount == "0" {
