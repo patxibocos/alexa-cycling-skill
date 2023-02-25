@@ -26,15 +26,18 @@ const numberSlot = "number"
 
 var ErrUnauthorized = errors.New("ErrUnauthorized")
 
-func today() time.Time {
-	now := time.Now()
+func today(loc *time.Location) time.Time {
+	if loc == nil {
+		loc = time.UTC
+	}
+	now := time.Now().In(loc)
 	year, month, day := now.Date()
-	today := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
+	today := time.Date(year, month, day, 0, 0, 0, 0, loc)
 	return today
 }
 
-func tomorrow() time.Time {
-	return today().Add(24 * time.Hour)
+func tomorrow(loc *time.Location) time.Time {
+	return today(loc).Add(24 * time.Hour)
 }
 
 func addStageInfoQuestionToSession(sessionAttributes map[string]interface{}, raceId string, day time.Time) {
@@ -47,19 +50,20 @@ func handleRaceResult(request Request, localizer i18nLocalizer, cyclingData *pcs
 	intent := request.Body.Intent
 	raceNameSlot := intent.Slots[raceSlot]
 	raceId := raceNameSlot.Resolutions.ResolutionsPerAuthority[0].Values[0].Value.ID
+	location := getLocation(request)
 	race := cycling.FindRace(cyclingData.Races, raceId)
-	raceResult := cycling.GetRaceResult(race, cyclingData.Riders, cyclingData.Teams)
+	raceResult := cycling.GetRaceResult(race, cyclingData.Riders, cyclingData.Teams, location)
 	var messages []string
 	messages = append(messages, messageForRaceResult(localizer, race, raceResult))
 	endSession := true
 	sessionAttributes := make(map[string]interface{})
 	if rr, ok := raceResult.(*cycling.MultiStageRaceWithResults); ok && !cycling.IsLastRaceStage(race, rr.StageNumber) && cycling.StageContainsData(race.Stages[rr.StageNumber]) {
 		endSession = false
-		addStageInfoQuestionToSession(sessionAttributes, raceId, tomorrow())
+		addStageInfoQuestionToSession(sessionAttributes, raceId, tomorrow(location))
 		messages = append(messages, localizer.localize(localizeParams{key: "TomorrowStageQuestion"}))
 	}
 	if _, ok := raceResult.(*cycling.FutureRace); ok {
-		daysDiff := race.StartDate.AsTime().Sub(today()).Hours()
+		daysDiff := race.StartDate.AsTime().Sub(today(location)).Hours()
 		if daysDiff >= 7 && !isReminderForRace(race, request) {
 			messages = append(messages, localizer.localize(localizeParams{key: "RaceReminderQuestion"}))
 			sessionAttributes[questionAttribute] = setReminderAttributeValue
@@ -80,14 +84,15 @@ func handleRaceResult(request Request, localizer i18nLocalizer, cyclingData *pcs
 }
 
 func handleLaunchRequest(request Request, localizer i18nLocalizer, cyclingData *pcsscraper.CyclingData) Response {
-	activeRaces := cycling.GetActiveRaces(cyclingData.Races)
+	location := getLocation(request)
+	activeRaces := cycling.GetActiveRaces(cyclingData.Races, location)
 	endSession := true
 	var messages []string
 	sessionAttributes := make(map[string]interface{})
 	switch len(activeRaces) {
 	case 0:
 		messages = append(messages, localizer.localize(localizeParams{key: "NoActiveRace"}))
-		nextRace := cycling.FindNextRace(cyclingData.Races)
+		nextRace := cycling.FindNextRace(cyclingData.Races, location)
 		if nextRace == nil {
 			messages = append(messages, localizer.localize(localizeParams{key: "SeasonEnded"}))
 		} else {
@@ -98,7 +103,7 @@ func handleLaunchRequest(request Request, localizer i18nLocalizer, cyclingData *
 					"StartDate": formattedDate(nextRace.StartDate.AsTime()),
 				},
 			}))
-			daysDiff := nextRace.StartDate.AsTime().Sub(today()).Hours()
+			daysDiff := nextRace.StartDate.AsTime().Sub(today(location)).Hours()
 			if daysDiff >= 7 && !isReminderForRace(nextRace, request) {
 				messages = append(messages, localizer.localize(localizeParams{key: "RaceReminderQuestion"}))
 				sessionAttributes[questionAttribute] = setReminderAttributeValue
@@ -108,11 +113,11 @@ func handleLaunchRequest(request Request, localizer i18nLocalizer, cyclingData *
 		}
 	case 1:
 		race := activeRaces[0]
-		raceResult := cycling.GetRaceResult(race, cyclingData.Riders, cyclingData.Teams)
+		raceResult := cycling.GetRaceResult(race, cyclingData.Riders, cyclingData.Teams, location)
 		messages = append(messages, messageForRaceResult(localizer, race, raceResult))
 		if rr, ok := raceResult.(*cycling.MultiStageRaceWithResults); ok && !cycling.IsLastRaceStage(race, rr.StageNumber) && cycling.StageContainsData(race.Stages[rr.StageNumber]) {
 			endSession = false
-			addStageInfoQuestionToSession(sessionAttributes, race.Id, tomorrow())
+			addStageInfoQuestionToSession(sessionAttributes, race.Id, tomorrow(location))
 			messages = append(messages, localizer.localize(localizeParams{key: "TomorrowStageQuestion"}))
 		}
 		if rr, ok := raceResult.(*cycling.MultiStageRaceWithoutResults); ok && rr.StageNumber > 1 {
@@ -124,8 +129,8 @@ func handleLaunchRequest(request Request, localizer i18nLocalizer, cyclingData *
 	case 2:
 		race1 := activeRaces[0]
 		race2 := activeRaces[1]
-		race1Result := cycling.GetRaceResult(race1, cyclingData.Riders, cyclingData.Teams)
-		race2Result := cycling.GetRaceResult(race2, cyclingData.Riders, cyclingData.Teams)
+		race1Result := cycling.GetRaceResult(race1, cyclingData.Riders, cyclingData.Teams, location)
+		race2Result := cycling.GetRaceResult(race2, cyclingData.Riders, cyclingData.Teams, location)
 		messages = append(messages, messageForTwoRaceResults(localizer, race1, race2, race1Result, race2Result))
 	}
 	message := strings.Join(messages, ". ")

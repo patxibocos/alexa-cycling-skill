@@ -9,11 +9,11 @@ import (
 
 const MillisModulo = 60000
 
-func GetRaceResult(race *pcsscraper.Race, riders []*pcsscraper.Rider, teams []*pcsscraper.Team) RaceResult {
-	if raceIsFromThePast(race) {
+func GetRaceResult(race *pcsscraper.Race, riders []*pcsscraper.Rider, teams []*pcsscraper.Team, loc *time.Location) RaceResult {
+	if raceIsFromThePast(race, loc) {
 		return &PastRace{GcTop3: GetTop3FromResult(race.Result, riders)}
 	}
-	if raceIsFromTheFuture(race) {
+	if raceIsFromTheFuture(race, loc) {
 		return new(FutureRace)
 	}
 	if IsSingleDayRace(race) {
@@ -25,7 +25,7 @@ func GetRaceResult(race *pcsscraper.Race, riders []*pcsscraper.Rider, teams []*p
 			return new(SingleDayRaceWithoutResults)
 		}
 	}
-	todayStage, stageNumber := findTodayStage(race)
+	todayStage, stageNumber := findTodayStage(race, loc)
 	if todayStage == nil {
 		return new(RestDayStage)
 	}
@@ -52,10 +52,10 @@ func IsLastRaceStage(race *pcsscraper.Race, stageNumber int) bool {
 	return stageNumber == len(race.Stages)
 }
 
-func GetActiveRaces(races []*pcsscraper.Race) []*pcsscraper.Race {
+func GetActiveRaces(races []*pcsscraper.Race, loc *time.Location) []*pcsscraper.Race {
 	var activeRaces []*pcsscraper.Race
 	for _, race := range races {
-		if raceIsActive(race) {
+		if raceIsActive(race, loc) {
 			activeRaces = append(activeRaces, race)
 		}
 	}
@@ -72,8 +72,8 @@ func FindRace(races []*pcsscraper.Race, raceId string) *pcsscraper.Race {
 	return race
 }
 
-func FindNextRace(races []*pcsscraper.Race) *pcsscraper.Race {
-	today := today()
+func FindNextRace(races []*pcsscraper.Race, loc *time.Location) *pcsscraper.Race {
+	today := today(loc)
 	for _, race := range races {
 		if race.StartDate.AsTime().After(today) {
 			return race
@@ -212,14 +212,14 @@ func GetTop3TeamsFromResult(result []*pcsscraper.ParticipantResult, teams []*pcs
 	}
 }
 
-func raceIsActive(race *pcsscraper.Race) bool {
-	today := today()
+func raceIsActive(race *pcsscraper.Race, loc *time.Location) bool {
+	today := today(loc)
 	return (race.StartDate.AsTime() == today || race.StartDate.AsTime().Before(today)) &&
 		(race.EndDate.AsTime() == today || race.EndDate.AsTime().After(today))
 }
 
-func findTodayStage(race *pcsscraper.Race) (*pcsscraper.Stage, int) {
-	today := today()
+func findTodayStage(race *pcsscraper.Race, loc *time.Location) (*pcsscraper.Stage, int) {
+	today := today(loc)
 	for i, stage := range race.Stages {
 		stageYear, stageMonth, stageDay := stage.StartDateTime.AsTime().Date()
 		todayYear, todayMonth, todayDay := today.Date()
@@ -230,12 +230,12 @@ func findTodayStage(race *pcsscraper.Race) (*pcsscraper.Stage, int) {
 	return nil, 0
 }
 
-func raceIsFromThePast(race *pcsscraper.Race) bool {
-	return race.EndDate.AsTime().Before(today())
+func raceIsFromThePast(race *pcsscraper.Race, loc *time.Location) bool {
+	return race.EndDate.AsTime().Before(today(loc))
 }
 
-func raceIsFromTheFuture(race *pcsscraper.Race) bool {
-	return race.StartDate.AsTime().After(today())
+func raceIsFromTheFuture(race *pcsscraper.Race, loc *time.Location) bool {
+	return race.StartDate.AsTime().After(today(loc))
 }
 
 func RaceIsFinished(race *pcsscraper.Race) bool {
@@ -258,10 +258,13 @@ func isTeamTimeTrial(stage *pcsscraper.Stage) bool {
 	return stage.StageType == pcsscraper.Stage_STAGE_TYPE_TEAM_TIME_TRIAL
 }
 
-func today() time.Time {
-	now := time.Now()
+func today(loc *time.Location) time.Time {
+	if loc == nil {
+		loc = time.UTC
+	}
+	now := time.Now().In(loc)
 	year, month, day := now.Date()
-	today := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
+	today := time.Date(year, month, day, 0, 0, 0, 0, loc)
 	return today
 }
 
