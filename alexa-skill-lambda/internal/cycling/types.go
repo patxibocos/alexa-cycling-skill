@@ -2,7 +2,7 @@ package cycling
 
 import (
 	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/pcsscraper"
-	"google.golang.org/protobuf/types/known/timestamppb"
+	"time"
 )
 
 type RaceResult interface {
@@ -69,15 +69,15 @@ func (_ MultiStageRaceWithoutResults) isRaceResult() {}
 
 type NoStage struct{}
 type StageWithData struct {
-	Departure   string
-	Arrival     string
-	Distance    float32
-	ProfileType pcsscraper.Stage_ProfileType
-	StartDate   *timestamppb.Timestamp
-	StageType   pcsscraper.Stage_StageType
+	Departure      string
+	Arrival        string
+	Distance       float32
+	ProfileType    pcsscraper.Stage_ProfileType
+	StartDateLocal time.Time
+	StageType      pcsscraper.Stage_StageType
 }
 type StageWithoutData struct {
-	StartDate *timestamppb.Timestamp
+	StartDateLocal time.Time
 }
 
 func (_ RestDayStage) isRaceStage()     {}
@@ -87,8 +87,8 @@ func (_ StageWithoutData) isRaceStage() {}
 
 type SingleDayRace struct{}
 type YesMountainsStage struct {
-	StageNumber int
-	StartDate   *timestamppb.Timestamp
+	StageNumber    int
+	StartDateLocal time.Time
 }
 type NoStageTypeData struct{}
 type NoMountainsStage struct{}
