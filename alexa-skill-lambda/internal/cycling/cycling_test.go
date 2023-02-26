@@ -1,6 +1,7 @@
 package cycling
 
 import (
+	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/internal/timeutils"
 	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/pcsscraper"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -11,7 +12,7 @@ import (
 const Day = 24 * time.Hour
 
 func TestPastRace(t *testing.T) {
-	yesterday := today(time.UTC).Add(-1 * Day)
+	yesterday := timeutils.Today(time.UTC).Add(-1 * Day)
 	race := &pcsscraper.Race{
 		StartDate: timestamppb.New(yesterday),
 		EndDate:   timestamppb.New(yesterday),
@@ -31,8 +32,8 @@ func TestPastRace(t *testing.T) {
 }
 
 func TestFutureRace(t *testing.T) {
-	tomorrow := today(time.UTC).Add(1 * Day)
-	dayAfterTomorrow := today(time.UTC).Add(2 * Day)
+	tomorrow := timeutils.Today(time.UTC).Add(1 * Day)
+	dayAfterTomorrow := timeutils.Today(time.UTC).Add(2 * Day)
 	race := &pcsscraper.Race{
 		StartDate: timestamppb.New(tomorrow),
 		EndDate:   timestamppb.New(dayAfterTomorrow),
@@ -44,7 +45,7 @@ func TestFutureRace(t *testing.T) {
 }
 
 func TestMultiStageRaceWithoutResults(t *testing.T) {
-	today := today(time.UTC)
+	today := timeutils.Today(time.UTC)
 	yesterday := today.Add(-1 * Day)
 	race := &pcsscraper.Race{
 		StartDate: timestamppb.New(yesterday),
@@ -63,7 +64,7 @@ func TestMultiStageRaceWithoutResults(t *testing.T) {
 }
 
 func TestMultiStageRaceWithResults(t *testing.T) {
-	today := today(time.UTC)
+	today := timeutils.Today(time.UTC)
 	yesterday := today.Add(-1 * Day)
 	race := &pcsscraper.Race{
 		StartDate: timestamppb.New(yesterday),
@@ -94,7 +95,7 @@ func TestMultiStageRaceWithResults(t *testing.T) {
 }
 
 func TestSingleDayRaceWithoutResults(t *testing.T) {
-	today := today(time.UTC)
+	today := timeutils.Today(time.UTC)
 	race := &pcsscraper.Race{
 		StartDate: timestamppb.New(today),
 		EndDate:   timestamppb.New(today),
@@ -109,7 +110,7 @@ func TestSingleDayRaceWithoutResults(t *testing.T) {
 }
 
 func TestSingleDayRaceWithResults(t *testing.T) {
-	today := today(time.UTC)
+	today := timeutils.Today(time.UTC)
 	race := &pcsscraper.Race{
 		StartDate: timestamppb.New(today),
 		EndDate:   timestamppb.New(today),
@@ -132,8 +133,8 @@ func TestSingleDayRaceWithResults(t *testing.T) {
 }
 
 func TestRestDayStage(t *testing.T) {
-	yesterday := today(time.UTC).Add(-1 * Day)
-	tomorrow := today(time.UTC).Add(1 * Day)
+	yesterday := timeutils.Today(time.UTC).Add(-1 * Day)
+	tomorrow := timeutils.Today(time.UTC).Add(1 * Day)
 	race := &pcsscraper.Race{
 		StartDate: timestamppb.New(yesterday),
 		EndDate:   timestamppb.New(tomorrow),
@@ -146,8 +147,8 @@ func TestRestDayStage(t *testing.T) {
 }
 
 func TestFindNextRaceNotFound(t *testing.T) {
-	yesterday := timestamppb.New(today(time.UTC).Add(-1 * Day))
-	today := timestamppb.New(today(time.UTC))
+	yesterday := timestamppb.New(timeutils.Today(time.UTC).Add(-1 * Day))
+	today := timestamppb.New(timeutils.Today(time.UTC))
 	races := []*pcsscraper.Race{
 		{StartDate: yesterday},
 		{StartDate: today},
@@ -159,7 +160,7 @@ func TestFindNextRaceNotFound(t *testing.T) {
 }
 
 func TestFindNextRaceIsFound(t *testing.T) {
-	tomorrow := timestamppb.New(today(time.UTC).Add(1 * Day))
+	tomorrow := timestamppb.New(timeutils.Today(time.UTC).Add(1 * Day))
 	races := []*pcsscraper.Race{
 		{StartDate: tomorrow},
 	}
@@ -170,9 +171,9 @@ func TestFindNextRaceIsFound(t *testing.T) {
 }
 
 func TestGetActiveRaces(t *testing.T) {
-	yesterday := today(time.UTC).Add(-1 * Day)
-	tomorrow := today(time.UTC).Add(1 * Day)
-	today := today(time.UTC)
+	yesterday := timeutils.Today(time.UTC).Add(-1 * Day)
+	tomorrow := timeutils.Today(time.UTC).Add(1 * Day)
+	today := timeutils.Today(time.UTC)
 	races := []*pcsscraper.Race{
 		{StartDate: timestamppb.New(yesterday), EndDate: timestamppb.New(today)},
 		{StartDate: timestamppb.New(today), EndDate: timestamppb.New(today)},
@@ -185,41 +186,41 @@ func TestGetActiveRaces(t *testing.T) {
 }
 
 func TestNoStage(t *testing.T) {
-	tomorrow := today(time.UTC).Add(1 * Day)
-	today := today(time.UTC)
+	tomorrow := timeutils.Today(time.UTC).Add(1 * Day)
+	today := timeutils.Today(time.UTC)
 	race := &pcsscraper.Race{Stages: []*pcsscraper.Stage{{StartDateTime: timestamppb.New(tomorrow)}}}
 
-	raceStage := GetRaceStageForDay(race, today)
+	raceStage := GetRaceStageForDay(race, today, time.UTC)
 
 	assert.Equal(t, new(NoStage), raceStage)
 }
 
 func TestRestDay(t *testing.T) {
-	yesterday := today(time.UTC).Add(-1 * Day)
-	tomorrow := today(time.UTC).Add(1 * Day)
-	today := today(time.UTC)
+	yesterday := timeutils.Today(time.UTC).Add(-1 * Day)
+	tomorrow := timeutils.Today(time.UTC).Add(1 * Day)
+	today := timeutils.Today(time.UTC)
 	race := &pcsscraper.Race{
 		StartDate: timestamppb.New(yesterday),
 		EndDate:   timestamppb.New(tomorrow),
 		Stages:    []*pcsscraper.Stage{{StartDateTime: timestamppb.New(yesterday)}, {StartDateTime: timestamppb.New(tomorrow)}},
 	}
 
-	raceStage := GetRaceStageForDay(race, today)
+	raceStage := GetRaceStageForDay(race, today, time.UTC)
 
 	assert.Equal(t, new(RestDayStage), raceStage)
 }
 
 func TestStageWithoutData(t *testing.T) {
-	today := today(time.UTC)
+	today := timeutils.Today(time.UTC)
 	race := &pcsscraper.Race{Stages: []*pcsscraper.Stage{{StartDateTime: timestamppb.New(today)}}}
 
-	raceStage := GetRaceStageForDay(race, today)
+	raceStage := GetRaceStageForDay(race, today, time.UTC)
 
-	assert.Equal(t, &StageWithoutData{StartDate: timestamppb.New(today)}, raceStage)
+	assert.Equal(t, &StageWithoutData{StartDateLocal: today}, raceStage)
 }
 
 func TestStageWithData(t *testing.T) {
-	today := today(time.UTC)
+	today := timeutils.Today(time.UTC)
 	bilbao := "Bilbao"
 	barcelona := "Barcelona"
 	race := &pcsscraper.Race{Stages: []*pcsscraper.Stage{{
@@ -230,13 +231,13 @@ func TestStageWithData(t *testing.T) {
 		ProfileType:   pcsscraper.Stage_PROFILE_TYPE_MOUNTAINS_UPHILL_FINISH,
 	}}}
 
-	raceStage := GetRaceStageForDay(race, today)
+	raceStage := GetRaceStageForDay(race, today, time.UTC)
 
 	assert.Equal(t, &StageWithData{
-		Departure:   "Bilbao",
-		Arrival:     "Barcelona",
-		Distance:    123.456,
-		ProfileType: pcsscraper.Stage_PROFILE_TYPE_MOUNTAINS_UPHILL_FINISH,
-		StartDate:   timestamppb.New(today),
+		Departure:      "Bilbao",
+		Arrival:        "Barcelona",
+		Distance:       123.456,
+		ProfileType:    pcsscraper.Stage_PROFILE_TYPE_MOUNTAINS_UPHILL_FINISH,
+		StartDateLocal: today,
 	}, raceStage)
 }
