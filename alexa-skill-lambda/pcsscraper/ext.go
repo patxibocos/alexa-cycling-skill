@@ -6,11 +6,13 @@ import (
 )
 
 func (r *Race) StartDateLocal(location *time.Location) time.Time {
-	return timeutils.LocalDate(r.StartDate.AsTime(), location)
+	firstStage := r.Stages[0]
+	return timeutils.LocalDate(firstStage.StartDateTime.AsTime(), location)
 }
 
 func (r *Race) EndDateLocal(location *time.Location) time.Time {
-	return timeutils.LocalDate(r.EndDate.AsTime(), location)
+	lastStage := r.Stages[len(r.Stages)-1]
+	return timeutils.LocalDate(lastStage.StartDateTime.AsTime(), location)
 }
 
 func (s *Stage) StartDateTimeLocal(location *time.Location) time.Time {
