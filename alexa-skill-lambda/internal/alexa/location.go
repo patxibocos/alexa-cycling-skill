@@ -8,11 +8,16 @@ import (
 )
 
 func getLocation(request Request) *time.Location {
-	resp, _ := doRequest("GET", fmt.Sprintf("/v2/devices/%s/settings/System.timeZone", request.Context.System.Device.DeviceID), request, nil)
-	responseBytes, _ := io.ReadAll(resp.Body)
+	resp, err := doRequest("GET", fmt.Sprintf("/v2/devices/%s/settings/System.timeZone", request.Context.System.Device.DeviceID), request, nil)
+	if err != nil {
+		return nil
+	}
+	responseBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil
+	}
 	timeZone := string(responseBytes)
 	// Remove heading and trailing " from the response
 	location, _ := time.LoadLocation(strings.Trim(timeZone, "\""))
-	fmt.Println(location)
 	return location
 }
