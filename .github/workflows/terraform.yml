@@ -53,6 +53,7 @@ jobs:
       with:
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
         terraform_wrapper: false
+        terraform_version: 1.4.2
 
     - name: Setup Terraform variables
       working-directory: ./terraform
@@ -65,7 +66,7 @@ jobs:
 
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
-      run: terraform init
+      run: terraform init -upgrade
       working-directory: ./terraform
 
     # Checks that all Terraform configuration files adhere to a canonical format

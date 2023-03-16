@@ -57,6 +57,10 @@ resource "aws_iam_role_policy_attachment" "terraform_lambda_policy" {
 
 resource "aws_s3_bucket" "alexa_cycling_s3_bucket" {
   bucket = var.AWS_S3_BUCKET
+}
+
+resource "aws_s3_bucket_acl" "alexa_cycling_s3_bucket_acl" {
+  bucket = var.AWS_S3_BUCKET
   acl    = "private"
 }
 
