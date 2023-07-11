@@ -249,7 +249,7 @@ func handleGeneralClassification(request Request, localizer i18nLocalizer, cycli
 		})
 		return newResponse().text(message).shouldEndSession(true)
 	}
-	gcTop3 := cycling.GetTop3FromResult(race.Result, cyclingData.Riders)
+	gcTop3 := cycling.GetTop3FromResult(race.Result(), cyclingData.Riders)
 	if cycling.RaceIsFinished(race) {
 		message := localizer.localize(localizeParams{
 			key: "GeneralClassificationComplete",
@@ -340,7 +340,7 @@ func handleYes(request Request, localizer i18nLocalizer, cyclingData *pcsscraper
 		raceAttribute := request.Session.Attributes[raceAttribute]
 		raceId := fmt.Sprintf("%v", raceAttribute)
 		race := cycling.FindRace(cyclingData.Races, raceId)
-		gcTop3 := cycling.GetTop3FromResult(race.Result, cyclingData.Riders)
+		gcTop3 := cycling.GetTop3FromResult(race.Result(), cyclingData.Riders)
 		message := localizer.localize(localizeParams{
 			key: "RaceResultGeneralClassification",
 			data: map[string]interface{}{
