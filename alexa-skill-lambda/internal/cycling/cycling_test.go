@@ -16,8 +16,10 @@ func TestPastRace(t *testing.T) {
 	race := &pcsscraper.Race{
 		Stages: []*pcsscraper.Stage{{
 			StartDateTime: timestamppb.New(yesterday),
+			GeneralResults: &pcsscraper.GeneralResults{
+				Time: []*pcsscraper.ParticipantResultTime{{ParticipantId: "ID1"}, {ParticipantId: "ID2"}, {ParticipantId: "ID3"}},
+			},
 		}},
-		Result: []*pcsscraper.ParticipantResult{{ParticipantId: "ID1"}, {ParticipantId: "ID2"}, {ParticipantId: "ID3"}},
 	}
 	riders := []*pcsscraper.Rider{{Id: "ID1"}, {Id: "ID2"}, {Id: "ID3"}}
 
@@ -68,9 +70,16 @@ func TestMultiStageRaceWithResults(t *testing.T) {
 	race := &pcsscraper.Race{
 		Stages: []*pcsscraper.Stage{
 			{StartDateTime: timestamppb.New(yesterday)},
-			{StartDateTime: timestamppb.New(today), Result: []*pcsscraper.ParticipantResult{{ParticipantId: "ID1"}, {ParticipantId: "ID2"}, {ParticipantId: "ID3"}}},
+			{
+				StartDateTime: timestamppb.New(today),
+				StageResults: &pcsscraper.StageResults{
+					Time: []*pcsscraper.ParticipantResultTime{{ParticipantId: "ID1"}, {ParticipantId: "ID2"}, {ParticipantId: "ID3"}},
+				},
+				GeneralResults: &pcsscraper.GeneralResults{
+					Time: []*pcsscraper.ParticipantResultTime{{ParticipantId: "ID1"}, {ParticipantId: "ID2"}, {ParticipantId: "ID3"}},
+				},
+			},
 		},
-		Result: []*pcsscraper.ParticipantResult{{ParticipantId: "ID1"}, {ParticipantId: "ID2"}, {ParticipantId: "ID3"}},
 	}
 	riders := []*pcsscraper.Rider{{Id: "ID1"}, {Id: "ID2"}, {Id: "ID3"}}
 
@@ -108,9 +117,16 @@ func TestSingleDayRaceWithResults(t *testing.T) {
 	today := timeutils.Today(time.UTC)
 	race := &pcsscraper.Race{
 		Stages: []*pcsscraper.Stage{
-			{StartDateTime: timestamppb.New(today), Result: []*pcsscraper.ParticipantResult{{ParticipantId: "ID1"}, {ParticipantId: "ID2"}, {ParticipantId: "ID3"}}},
+			{
+				StartDateTime: timestamppb.New(today),
+				StageResults: &pcsscraper.StageResults{
+					Time: []*pcsscraper.ParticipantResultTime{{ParticipantId: "ID1"}, {ParticipantId: "ID2"}, {ParticipantId: "ID3"}},
+				},
+				GeneralResults: &pcsscraper.GeneralResults{
+					Time: []*pcsscraper.ParticipantResultTime{{ParticipantId: "ID1"}, {ParticipantId: "ID2"}, {ParticipantId: "ID3"}},
+				},
+			},
 		},
-		Result: []*pcsscraper.ParticipantResult{{ParticipantId: "ID1"}, {ParticipantId: "ID2"}, {ParticipantId: "ID3"}},
 	}
 	riders := []*pcsscraper.Rider{{Id: "ID1"}, {Id: "ID2"}, {Id: "ID3"}}
 
