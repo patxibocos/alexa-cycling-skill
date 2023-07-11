@@ -16,7 +16,14 @@ func (r *Race) EndDateLocal(location *time.Location) time.Time {
 }
 
 func (r *Race) Result() []*ParticipantResultTime {
-	return r.Stages[len(r.Stages)-1].GeneralResults.GetTime()
+	var result []*ParticipantResultTime
+	for _, stage := range r.Stages {
+		generalTimeResults := stage.GeneralResults.GetTime()
+		if len(generalTimeResults) > 0 {
+			result = generalTimeResults
+		}
+	}
+	return result
 }
 
 func (s *Stage) StartDateTimeLocal(location *time.Location) time.Time {
