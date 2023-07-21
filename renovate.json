@@ -5,22 +5,6 @@
   ],
   "packageRules": [
     {
-      "groupName": "Kotlin, KSP and Compose Compiler",
-      "groupSlug": "kotlin",
-      "matchPackageNames": [
-        "com.google.devtools.ksp",
-        "androidx.compose.compiler",
-        "org.jetbrains.kotlin"
-      ]
-    },
-    {
-      "groupName": "Android Tools",
-      "matchPackagePrefixes": [
-        "com.android.tools:",
-        "com.android.tools.build:",
-      ],
-    },
-    {
       "description": "Automatically merge minor and patch-level updates",
       "matchUpdateTypes": ["minor", "patch"],
       "automerge": true,
