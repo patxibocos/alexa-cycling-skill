@@ -4,8 +4,8 @@ variable "AWS_S3_OBJECT_KEY" {}
 
 data "archive_file" "alexa_cycling_lambda_code" {
   type        = "zip"
-  source_file = "alexa-skill-lambda"
-  output_path = "alexa-skill-lambda.zip"
+  source_file = "bootstrap"
+  output_path = "bootstrap.zip"
 }
 
 resource "aws_lambda_function" "alexa_cycling_lambda" {
@@ -14,7 +14,7 @@ resource "aws_lambda_function" "alexa_cycling_lambda" {
   runtime          = "provided.al2"
   filename         = data.archive_file.alexa_cycling_lambda_code.output_path
   source_code_hash = data.archive_file.alexa_cycling_lambda_code.output_base64sha256
-  handler          = "alexa-skill-lambda"
+  handler          = "bootstrap"
   publish          = true
   environment {
     variables = {

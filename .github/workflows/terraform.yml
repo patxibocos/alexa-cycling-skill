@@ -44,7 +44,7 @@ jobs:
       working-directory: ./alexa-skill-lambda
 
     - name: Build alexa-skill-lambda
-      run: GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-s -w" -tags timetzdata -o ../terraform/alexa-skill-lambda main.go
+      run: GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-s -w" -tags timetzdata -tags lambda.norpc -o ../terraform/bootstrap main.go
       working-directory: ./alexa-skill-lambda
 
     # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
