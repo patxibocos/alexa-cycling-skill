@@ -51,6 +51,7 @@ var (
 		"san-sebastian-2023":                    "La Clásica San Sebastián",
 		"tour-de-pologne-2023":                  "El Tour de Polonia",
 		"cyclassics-hamburg-2023":               "La Clásica Bemer",
+		"renewi-tour-2023":                      "El Tour de Renewi",
 		"benelux-tour-2023":                     "El Tour del Benelux",
 		"vuelta-a-espana-2023":                  "La Vuelta a España",
 		"bretagne-classic-2023":                 "La Clásica Bretaña",
