@@ -7,7 +7,7 @@ require (
 	github.com/aws/aws-lambda-go v1.41.0
 	github.com/aws/aws-sdk-go v1.46.1
 	github.com/golang/protobuf v1.5.3
-	github.com/nicksnyder/go-i18n/v2 v2.2.1
+	github.com/nicksnyder/go-i18n/v2 v2.2.2
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/text v0.13.0
 	google.golang.org/protobuf v1.31.0
