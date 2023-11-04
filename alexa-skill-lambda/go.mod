@@ -9,7 +9,7 @@ require (
 	github.com/golang/protobuf v1.5.3
 	github.com/nicksnyder/go-i18n/v2 v2.2.2
 	github.com/stretchr/testify v1.8.4
-	golang.org/x/text v0.13.0
+	golang.org/x/text v0.14.0
 	google.golang.org/protobuf v1.31.0
 )
 
