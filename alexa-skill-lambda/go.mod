@@ -1,12 +1,11 @@
 module github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda
 
-go 1.20
+go 1.21
 
 require (
 	github.com/BurntSushi/toml v1.3.2
 	github.com/aws/aws-lambda-go v1.43.0
 	github.com/aws/aws-sdk-go v1.49.16
-	github.com/golang/protobuf v1.5.3
 	github.com/nicksnyder/go-i18n/v2 v2.3.0
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/text v0.14.0
