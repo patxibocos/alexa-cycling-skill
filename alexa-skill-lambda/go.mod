@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/BurntSushi/toml v1.3.2
-	github.com/aws/aws-lambda-go v1.43.0
+	github.com/aws/aws-lambda-go v1.44.0
 	github.com/aws/aws-sdk-go v1.49.17
 	github.com/nicksnyder/go-i18n/v2 v2.3.0
 	github.com/stretchr/testify v1.8.4
