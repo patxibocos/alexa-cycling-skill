@@ -53,7 +53,7 @@ jobs:
       with:
         cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
         terraform_wrapper: false
-        terraform_version: 1.7.1
+        terraform_version: 1.7.2
 
     - name: Setup Terraform variables
       working-directory: ./terraform
