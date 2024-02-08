@@ -1,4 +1,4 @@
-name: 'Terraform'
+name: "Terraform"
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
 
 jobs:
   terraform:
-    name: 'Terraform'
+    name: "Terraform"
     runs-on: ubuntu-latest
     environment: production
 
@@ -20,72 +20,72 @@ jobs:
         shell: bash
 
     steps:
-    # Checkout the repository to the GitHub Actions runner
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ github.event.pull_request.head.sha }}
+      # Checkout the repository to the GitHub Actions runner
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
 
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: eu-west-3
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-3
 
-    # Install Go
-    - name: Setup Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.21'
+      # Install Go
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.21"
 
-    - name: Test alexa-skill-lambda
-      run: go test ./...
-      working-directory: ./alexa-skill-lambda
+      - name: Test alexa-skill-lambda
+        run: go test ./...
+        working-directory: ./alexa-skill-lambda
 
-    - name: Build alexa-skill-lambda
-      run: GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-s -w" -tags timetzdata -tags lambda.norpc -o ../terraform/bootstrap main.go
-      working-directory: ./alexa-skill-lambda
+      - name: Build alexa-skill-lambda
+        run: GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-s -w" -tags timetzdata -tags lambda.norpc -o ../terraform/bootstrap main.go
+        working-directory: ./alexa-skill-lambda
 
-    # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-        terraform_wrapper: false
-        terraform_version: 1.7.2
+      # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+          terraform_wrapper: false
+          terraform_version: 1.7.3
 
-    - name: Setup Terraform variables
-      working-directory: ./terraform
-      run: |-
-        cat > pipeline.auto.tfvars <<EOF
-        AWS_S3_BUCKET     = "${{ secrets.AWS_S3_BUCKET }}"
-        AWS_S3_OBJECT_KEY = "${{ secrets.AWS_S3_OBJECT_KEY }}"
-        ALEXA_SKILL_ID    = "${{ secrets.ALEXA_SKILL_ID }}"
-        EOF
+      - name: Setup Terraform variables
+        working-directory: ./terraform
+        run: |-
+          cat > pipeline.auto.tfvars <<EOF
+          AWS_S3_BUCKET     = "${{ secrets.AWS_S3_BUCKET }}"
+          AWS_S3_OBJECT_KEY = "${{ secrets.AWS_S3_OBJECT_KEY }}"
+          ALEXA_SKILL_ID    = "${{ secrets.ALEXA_SKILL_ID }}"
+          EOF
 
-    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
-    - name: Terraform Init
-      run: terraform init -upgrade
-      working-directory: ./terraform
+      # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+      - name: Terraform Init
+        run: terraform init -upgrade
+        working-directory: ./terraform
 
-    # Checks that all Terraform configuration files adhere to a canonical format
-    - name: Terraform Format
-      run: terraform fmt -check
-      working-directory: ./terraform
+      # Checks that all Terraform configuration files adhere to a canonical format
+      - name: Terraform Format
+        run: terraform fmt -check
+        working-directory: ./terraform
 
-    - name: Terraform Apply
-      run: terraform apply -auto-approve
-      working-directory: ./terraform
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+        working-directory: ./terraform
 
-    - name: Get short SHA
-      run: echo "SHORT_SHA=`git rev-parse --short HEAD`" >> $GITHUB_ENV
+      - name: Get short SHA
+        run: echo "SHORT_SHA=`git rev-parse --short HEAD`" >> $GITHUB_ENV
 
-    - name: Update lambda alias
-      run: ./create_update_alias.sh ${SHORT_SHA}
-      working-directory: ./terraform
+      - name: Update lambda alias
+        run: ./create_update_alias.sh ${SHORT_SHA}
+        working-directory: ./terraform
 
-    - name: Update PROD alias
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      run: ./create_update_alias.sh PROD
-      working-directory: ./terraform
+      - name: Update PROD alias
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: ./create_update_alias.sh PROD
+        working-directory: ./terraform
