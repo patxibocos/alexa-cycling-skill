@@ -113,6 +113,11 @@ func handleLaunchRequest(request Request, localizer i18nLocalizer, cyclingData *
 			sessionAttributes[raceAttribute] = race.Id
 			messages = append(messages, localizer.localize(localizeParams{key: "GeneralClassificationQuestion"}))
 		}
+		if _, ok := raceResult.(*cycling.RestDayStage); ok {
+			endSession = false
+			addStageInfoQuestionToSession(sessionAttributes, race.Id, timeutils.Tomorrow(location))
+			messages = append(messages, localizer.localize(localizeParams{key: "TomorrowStageQuestion"}))
+		}
 	case 2:
 		race1 := activeRaces[0]
 		race2 := activeRaces[1]
