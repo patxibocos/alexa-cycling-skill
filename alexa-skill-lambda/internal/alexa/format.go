@@ -43,7 +43,7 @@ var (
 		"la-fleche-wallone":                "La Flecha Valona",
 		"liege-bastogne-liege":             "La Lieja Bastoña Lieja",
 		"tour-de-romandie":                 "El Tour de Romandía",
-		"Eschborn-Frankfurt":               "La Eschborn Frankfurt",
+		"eschborn-frankfurt":               "La Eschborn Frankfurt",
 		"giro-d-italia":                    "El Yiro de Italia",
 		"dauphine":                         "El Critérium del Dofiné",
 		"tour-de-suisse":                   "El Tour de Suiza",
@@ -71,8 +71,8 @@ func formattedDate(time time.Time) string {
 }
 
 func raceName(raceID string) string {
-	// raceID contains -YYYY so we remove it to calculate map's key
+	// raceID contains -YYYY, so we remove it to calculate map's key
 	lastDashIndex := strings.LastIndex(raceID, "-")
-	mapKey := raceID[:lastDashIndex]
+	mapKey := strings.ToLower(raceID[:lastDashIndex])
 	return raceIDToName[mapKey]
 }
