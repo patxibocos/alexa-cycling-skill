@@ -3,7 +3,7 @@ module github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda
 go 1.22
 
 require (
-	github.com/BurntSushi/toml v1.3.2
+	github.com/BurntSushi/toml v1.4.0
 	github.com/aws/aws-lambda-go v1.47.0
 	github.com/aws/aws-sdk-go v1.53.7
 	github.com/nicksnyder/go-i18n/v2 v2.4.0
