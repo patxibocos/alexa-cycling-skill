@@ -1,6 +1,7 @@
 package alexa
 
 import (
+	"fmt"
 	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/pcsscraper"
 	"time"
 )
@@ -19,6 +20,8 @@ var intentRouting = map[string]func(Request, i18nLocalizer, *pcsscraper.CyclingD
 }
 
 func RequestHandler(request Request, cyclingData *pcsscraper.CyclingData) Response {
+	fmt.Println("RequestHandler")
+	fmt.Printf("bodyType %s", request.Body.Type)
 	localizer := newLocalizer(request.Body.Locale)
 	if request.Body.Type == "LaunchRequest" {
 		return handleLaunchRequest(request, localizer, cyclingData, locationProvider(request))
@@ -27,6 +30,7 @@ func RequestHandler(request Request, cyclingData *pcsscraper.CyclingData) Respon
 		return handleConnectionsResponse(request, localizer, cyclingData, locationProvider(request))
 	}
 	if handler, ok := intentRouting[request.Body.Intent.Name]; ok {
+		fmt.Printf("intentName %s", request.Body.Intent.Name)
 		return handler(request, localizer, cyclingData, locationProvider(request))
 	}
 	return newResponse().shouldEndSession(true)

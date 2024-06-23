@@ -34,9 +34,12 @@ func addStageInfoQuestionToSession(sessionAttributes map[string]interface{}, rac
 }
 
 func handleRaceResult(request Request, localizer i18nLocalizer, cyclingData *pcsscraper.CyclingData, locationProvider func() *time.Location) Response {
+	fmt.Println("handleRaceResult")
 	location := locationProvider()
 	intent := request.Body.Intent
 	raceNameSlot := intent.Slots[raceSlot]
+	jsonSlot, _ := json.Marshal(raceNameSlot)
+	fmt.Printf("raceNameSlot: %s", string(jsonSlot))
 	raceIdPrefix := raceNameSlot.Resolutions.ResolutionsPerAuthority[0].Values[0].Value.ID
 	race := cycling.FindRace(cyclingData.Races, raceIdPrefix)
 	raceResult := cycling.GetRaceResult(race, cyclingData.Riders, cyclingData.Teams, location)
