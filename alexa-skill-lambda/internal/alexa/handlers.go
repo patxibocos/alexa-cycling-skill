@@ -86,7 +86,7 @@ func handleLaunchRequest(request Request, localizer i18nLocalizer, cyclingData *
 			messages = append(messages, localizer.localize(localizeParams{
 				key: "NextRaceStart",
 				data: map[string]interface{}{
-					"Race":      raceName(nextRace.Id),
+					"Race":      nameForRace(nextRace),
 					"StartDate": formattedDate(nextRace.StartDateLocal(location)),
 				},
 			}))
@@ -176,7 +176,7 @@ func handleNumberStageInfo(request Request, localizer i18nLocalizer, cyclingData
 		message = localizer.localize(localizeParams{
 			key: "RaceStages",
 			data: map[string]interface{}{
-				"Race":   raceName(race.Id),
+				"Race":   nameForRace(race),
 				"Stages": len(race.Stages),
 			},
 			pluralCount: len(race.Stages),
@@ -202,7 +202,7 @@ func handleMountainsStart(request Request, localizer i18nLocalizer, cyclingData 
 	var message string
 	location := locationProvider()
 	mountainsStage := cycling.FindMountainsStage(race, location)
-	raceName := raceName(raceIdPrefix)
+	raceName := nameForRace(race)
 	switch ms := mountainsStage.(type) {
 	case *cycling.SingleDayRace:
 		message = localizer.localize(localizeParams{
@@ -243,7 +243,7 @@ func handleGeneralClassification(request Request, localizer i18nLocalizer, cycli
 	raceNameSlot := intent.Slots[raceSlot]
 	raceIdPrefix := raceNameSlot.Resolutions.ResolutionsPerAuthority[0].Values[0].Value.ID
 	race := cycling.FindRace(cyclingData.Races, raceIdPrefix)
-	raceName := raceName(race.Id)
+	raceName := nameForRace(race)
 	if cycling.RaceHasNotStarted(race) {
 		message := localizer.localize(localizeParams{
 			key: "RaceResultFuture",
@@ -365,7 +365,7 @@ func setReminderForRace(request Request, localizer i18nLocalizer, race *pcsscrap
 	reminderMessage := localizer.localize(localizeParams{
 		key: "RaceReminder",
 		data: map[string]interface{}{
-			"Race": raceName(race.Id),
+			"Race": nameForRace(race),
 		},
 	})
 	raceMillis := cycling.MillisForRace(race)
