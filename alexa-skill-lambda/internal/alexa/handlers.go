@@ -37,8 +37,8 @@ func handleRaceResult(request Request, localizer i18nLocalizer, cyclingData *pcs
 	location := locationProvider()
 	intent := request.Body.Intent
 	raceNameSlot := intent.Slots[raceSlot]
-	raceId := raceNameSlot.Resolutions.ResolutionsPerAuthority[0].Values[0].Value.ID
-	race := cycling.FindRace(cyclingData.Races, raceId)
+	raceIdPrefix := raceNameSlot.Resolutions.ResolutionsPerAuthority[0].Values[0].Value.ID
+	race := cycling.FindRace(cyclingData.Races, raceIdPrefix)
 	raceResult := cycling.GetRaceResult(race, cyclingData.Riders, cyclingData.Teams, location)
 	var messages []string
 	messages = append(messages, messageForRaceResult(localizer, race, raceResult, location))
@@ -46,7 +46,7 @@ func handleRaceResult(request Request, localizer i18nLocalizer, cyclingData *pcs
 	sessionAttributes := make(map[string]interface{})
 	if rr, ok := raceResult.(*cycling.MultiStageRaceWithResults); ok && !cycling.IsLastRaceStage(race, rr.StageNumber) && cycling.StageContainsData(race.Stages[rr.StageNumber]) {
 		endSession = false
-		addStageInfoQuestionToSession(sessionAttributes, raceId, timeutils.Tomorrow(location))
+		addStageInfoQuestionToSession(sessionAttributes, raceIdPrefix, timeutils.Tomorrow(location))
 		messages = append(messages, localizer.localize(localizeParams{key: "TomorrowStageQuestion"}))
 	}
 	if _, ok := raceResult.(*cycling.FutureRace); ok {
@@ -63,7 +63,7 @@ func handleRaceResult(request Request, localizer i18nLocalizer, cyclingData *pcs
 				messages = append(messages, localizer.localize(localizeParams{key: "FistStageQuestion"}))
 			}
 			endSession = false
-			addStageInfoQuestionToSession(sessionAttributes, raceId, race.StartDateLocal(location))
+			addStageInfoQuestionToSession(sessionAttributes, raceIdPrefix, race.StartDateLocal(location))
 		}
 	}
 	message := strings.Join(messages, ". ")
@@ -138,8 +138,8 @@ func handleConnectionsResponse(request Request, localizer i18nLocalizer, cycling
 	switch action {
 	case setReminderAttributeValue:
 		location := locationProvider()
-		raceId := splits[1]
-		race := cycling.FindRace(cyclingData.Races, raceId)
+		raceIdPrefix := splits[1]
+		race := cycling.FindRace(cyclingData.Races, raceIdPrefix)
 		err := setReminderForRace(request, localizer, race, location)
 		if err != nil {
 			return newResponse().text(localizer.localize(localizeParams{key: "SetReminderFailed"})).shouldEndSession(true)
@@ -155,8 +155,8 @@ func handleDayStageInfo(request Request, localizer i18nLocalizer, cyclingData *p
 	raceSlot := intent.Slots[raceSlot]
 	daySlot := intent.Slots[daySlot]
 	day, _ := time.Parse("2006-01-02", daySlot.Value)
-	raceId := raceSlot.Resolutions.ResolutionsPerAuthority[0].Values[0].Value.ID
-	race := cycling.FindRace(cyclingData.Races, raceId)
+	raceIdPrefix := raceSlot.Resolutions.ResolutionsPerAuthority[0].Values[0].Value.ID
+	race := cycling.FindRace(cyclingData.Races, raceIdPrefix)
 	raceStage := cycling.GetRaceStageForDay(race, day, locationProvider())
 	message := messageForRaceStage(localizer, raceStage)
 	return newResponse().shouldEndSession(true).text(message)
@@ -166,8 +166,8 @@ func handleNumberStageInfo(request Request, localizer i18nLocalizer, cyclingData
 	intent := request.Body.Intent
 	raceSlot := intent.Slots[raceSlot]
 	numberSlot := intent.Slots[numberSlot]
-	raceId := raceSlot.Resolutions.ResolutionsPerAuthority[0].Values[0].Value.ID
-	race := cycling.FindRace(cyclingData.Races, raceId)
+	raceIdPrefix := raceSlot.Resolutions.ResolutionsPerAuthority[0].Values[0].Value.ID
+	race := cycling.FindRace(cyclingData.Races, raceIdPrefix)
 	stageIndex, _ := strconv.Atoi(numberSlot.Value)
 	raceStage := cycling.GetRaceStageForIndex(race, stageIndex, locationProvider())
 	var message string
@@ -197,12 +197,12 @@ func handleNumberStageInfo(request Request, localizer i18nLocalizer, cyclingData
 func handleMountainsStart(request Request, localizer i18nLocalizer, cyclingData *pcsscraper.CyclingData, locationProvider func() *time.Location) Response {
 	intent := request.Body.Intent
 	raceSlot := intent.Slots[raceSlot]
-	raceId := raceSlot.Resolutions.ResolutionsPerAuthority[0].Values[0].Value.ID
-	race := cycling.FindRace(cyclingData.Races, raceId)
+	raceIdPrefix := raceSlot.Resolutions.ResolutionsPerAuthority[0].Values[0].Value.ID
+	race := cycling.FindRace(cyclingData.Races, raceIdPrefix)
 	var message string
 	location := locationProvider()
 	mountainsStage := cycling.FindMountainsStage(race, location)
-	raceName := raceName(raceId)
+	raceName := raceName(raceIdPrefix)
 	switch ms := mountainsStage.(type) {
 	case *cycling.SingleDayRace:
 		message = localizer.localize(localizeParams{
@@ -241,8 +241,8 @@ func handleMountainsStart(request Request, localizer i18nLocalizer, cyclingData 
 func handleGeneralClassification(request Request, localizer i18nLocalizer, cyclingData *pcsscraper.CyclingData, locationProvider func() *time.Location) Response {
 	intent := request.Body.Intent
 	raceNameSlot := intent.Slots[raceSlot]
-	raceId := raceNameSlot.Resolutions.ResolutionsPerAuthority[0].Values[0].Value.ID
-	race := cycling.FindRace(cyclingData.Races, raceId)
+	raceIdPrefix := raceNameSlot.Resolutions.ResolutionsPerAuthority[0].Values[0].Value.ID
+	race := cycling.FindRace(cyclingData.Races, raceIdPrefix)
 	raceName := raceName(race.Id)
 	if cycling.RaceHasNotStarted(race) {
 		message := localizer.localize(localizeParams{
@@ -308,15 +308,15 @@ func handleYes(request Request, localizer i18nLocalizer, cyclingData *pcsscraper
 		dayAttribute := request.Session.Attributes[dayAttribute]
 		raceAttribute := request.Session.Attributes[raceAttribute]
 		day, _ := time.Parse("2006-01-02", fmt.Sprintf("%v", dayAttribute))
-		raceId := fmt.Sprintf("%v", raceAttribute)
-		race := cycling.FindRace(cyclingData.Races, raceId)
+		raceIdPrefix := fmt.Sprintf("%v", raceAttribute)
+		race := cycling.FindRace(cyclingData.Races, raceIdPrefix)
 		raceStage := cycling.GetRaceStageForDay(race, day, locationProvider())
 		message := messageForRaceStage(localizer, raceStage)
 		return newResponse().shouldEndSession(true).text(message)
 	case setReminderAttributeValue:
 		raceAttribute := request.Session.Attributes[raceAttribute]
-		raceId := fmt.Sprintf("%v", raceAttribute)
-		race := cycling.FindRace(cyclingData.Races, raceId)
+		raceIdPrefix := fmt.Sprintf("%v", raceAttribute)
+		race := cycling.FindRace(cyclingData.Races, raceIdPrefix)
 		err := setReminderForRace(request, localizer, race, locationProvider())
 		if errors.Is(err, ErrUnauthorized) {
 			reminderDirective := SendRequestDirective{
@@ -332,7 +332,7 @@ func handleYes(request Request, localizer i18nLocalizer, cyclingData *pcsscraper
 						},
 					},
 				},
-				Token: fmt.Sprintf("%s:%s", setReminderAttributeValue, raceId),
+				Token: fmt.Sprintf("%s:%s", setReminderAttributeValue, raceIdPrefix),
 			}
 			return newResponse().directives([]interface{}{reminderDirective}).shouldEndSession(true)
 		}
@@ -343,8 +343,8 @@ func handleYes(request Request, localizer i18nLocalizer, cyclingData *pcsscraper
 		return newResponse().text(message).shouldEndSession(true)
 	case raceGeneralClassificationAttributeValue:
 		raceAttribute := request.Session.Attributes[raceAttribute]
-		raceId := fmt.Sprintf("%v", raceAttribute)
-		race := cycling.FindRace(cyclingData.Races, raceId)
+		raceIdPrefix := fmt.Sprintf("%v", raceAttribute)
+		race := cycling.FindRace(cyclingData.Races, raceIdPrefix)
 		gcTop3 := cycling.GetTop3FromResult(race.Result(), cyclingData.Riders)
 		message := localizer.localize(localizeParams{
 			key: "RaceResultGeneralClassification",
