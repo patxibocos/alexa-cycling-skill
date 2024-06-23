@@ -76,7 +76,7 @@ func messageForTwoRaceResults(localizer i18nLocalizer, race1, race2 *pcsscraper.
 }
 
 func messageForOneRaceWhenBothResultsAvailable(localizer i18nLocalizer, race *pcsscraper.Race, raceResult cycling.RaceResult, location *time.Location) string {
-	raceName := raceName(race.Id)
+	raceName := nameForRace(race)
 	if cycling.IsSingleDayRace(race, location) {
 		rr, _ := raceResult.(*cycling.SingleDayRaceWithResults)
 		return localizer.localize(localizeParams{
@@ -157,7 +157,7 @@ func raceResultsAvailable(raceResult cycling.RaceResult) bool {
 }
 
 func messageForRaceResult(localizer i18nLocalizer, race *pcsscraper.Race, raceResult cycling.RaceResult, location *time.Location) string {
-	raceName := raceName(race.Id)
+	raceName := nameForRace(race)
 	switch ri := raceResult.(type) {
 	case *cycling.PastRace:
 		return localizer.localize(localizeParams{
@@ -251,7 +251,7 @@ func messageForRaceResult(localizer i18nLocalizer, race *pcsscraper.Race, raceRe
 }
 
 func messageForRaceOrStage(localizer i18nLocalizer, race *pcsscraper.Race, raceResult cycling.RaceResult, location *time.Location) string {
-	raceName := raceName(race.Id)
+	raceName := nameForRace(race)
 	if cycling.IsSingleDayRace(race, location) {
 		return raceName
 	}

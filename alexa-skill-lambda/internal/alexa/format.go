@@ -70,6 +70,9 @@ func formattedDate(time time.Time) string {
 	return monthReplacer.Replace(time.Format("2 de January"))
 }
 
-func raceName(raceIdPrefix string) string {
-	return raceIDToName[raceIdPrefix]
+func nameForRace(race *pcsscraper.Race) string {
+	// raceID contains -YYYY, so we remove it to calculate map's key
+	lastDashIndex := strings.LastIndex(race.Id, "-")
+	mapKey := strings.ToLower(race.Id[:lastDashIndex])
+	return raceIDToName[mapKey]
 }
