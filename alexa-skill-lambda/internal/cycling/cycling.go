@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/internal/timeutils"
 	"github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda/pcsscraper"
+	"strings"
 	"time"
 )
 
@@ -63,10 +64,10 @@ func GetActiveRaces(races []*pcsscraper.Race, location *time.Location) []*pcsscr
 	return activeRaces
 }
 
-func FindRace(races []*pcsscraper.Race, raceId string) *pcsscraper.Race {
+func FindRace(races []*pcsscraper.Race, raceIdPrefix string) *pcsscraper.Race {
 	var race *pcsscraper.Race
 	for _, r := range races {
-		if r.Id == raceId {
+		if strings.HasPrefix(r.Id, raceIdPrefix) {
 			race = r
 		}
 	}
