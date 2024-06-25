@@ -5,7 +5,7 @@ go 1.22
 require (
 	github.com/BurntSushi/toml v1.4.0
 	github.com/aws/aws-lambda-go v1.47.0
-	github.com/aws/aws-sdk-go v1.54.6
+	github.com/aws/aws-sdk-go v1.54.7
 	github.com/nicksnyder/go-i18n/v2 v2.4.0
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/text v0.16.0
