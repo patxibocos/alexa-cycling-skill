@@ -1,6 +1,7 @@
 variable "ALEXA_SKILL_ID" {}
 variable "AWS_S3_BUCKET" {}
 variable "AWS_S3_OBJECT_KEY" {}
+variable "AWS_LAMBDA_ALIAS" {}
 
 data "archive_file" "alexa_cycling_lambda_code" {
   type        = "zip"
@@ -64,12 +65,28 @@ resource "aws_s3_bucket_acl" "alexa_cycling_s3_bucket_acl" {
   acl    = "private"
 }
 
-resource "aws_lambda_permission" "allow_alexa_skill" {
+resource "aws_lambda_alias" "alexa_skill_alias" {
+  name             = var.AWS_LAMBDA_ALIAS
+  function_name    = aws_lambda_function.alexa_cycling_lambda.function_name
+  function_version = aws_lambda_function.alexa_cycling_lambda.version
+}
+
+resource "aws_lambda_permission" "allow_alexa_skill_alias" {
   statement_id       = "AllowExecutionFromAlexa"
   action             = "lambda:InvokeFunction"
   function_name      = aws_lambda_function.alexa_cycling_lambda.arn
   principal          = "alexa-appkit.amazon.com"
   event_source_token = var.ALEXA_SKILL_ID
+  qualifier          = var.AWS_LAMBDA_ALIAS
+}
+
+resource "aws_lambda_permission" "allow_alexa_skill_prod" {
+  statement_id       = "AllowExecutionFromAlexa"
+  action             = "lambda:InvokeFunction"
+  function_name      = aws_lambda_function.alexa_cycling_lambda.arn
+  principal          = "alexa-appkit.amazon.com"
+  event_source_token = var.ALEXA_SKILL_ID
+  qualifier          = "PROD"
 }
 
 output "alexa_cycling_lambda_version" {

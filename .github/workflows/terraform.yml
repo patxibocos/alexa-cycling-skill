@@ -55,6 +55,12 @@ jobs:
           terraform_wrapper: false
           terraform_version: 1.8.5
 
+      - name: Get short SHA
+        run: echo "SHORT_SHA=`git rev-parse --short HEAD`" >> $GITHUB_ENV
+
+      - name: Calculate lambda alias to update
+        run: echo "AWS_LAMBDA_ALIAS=${{ (github.ref == 'refs/heads/main' && github.event_name == 'push') && 'PROD' || env.SHORT_SHA }}" >> $GITHUB_ENV
+
       - name: Setup Terraform variables
         working-directory: ./terraform
         run: |-
@@ -62,6 +68,7 @@ jobs:
           AWS_S3_BUCKET     = "${{ secrets.AWS_S3_BUCKET }}"
           AWS_S3_OBJECT_KEY = "${{ secrets.AWS_S3_OBJECT_KEY }}"
           ALEXA_SKILL_ID    = "${{ secrets.ALEXA_SKILL_ID }}"
+          AWS_LAMBDA_ALIAS  = "${{ env.SHORT_SHA }}"
           EOF
 
       # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
@@ -76,16 +83,4 @@ jobs:
 
       - name: Terraform Apply
         run: terraform apply -auto-approve
-        working-directory: ./terraform
-
-      - name: Get short SHA
-        run: echo "SHORT_SHA=`git rev-parse --short HEAD`" >> $GITHUB_ENV
-
-      - name: Update lambda alias
-        run: ./create_update_alias.sh ${SHORT_SHA}
-        working-directory: ./terraform
-
-      - name: Update PROD alias
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: ./create_update_alias.sh PROD
         working-directory: ./terraform
