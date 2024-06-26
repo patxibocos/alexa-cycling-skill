@@ -15,7 +15,8 @@ aws lambda create-alias \
   --function-name $ALEXA_CYCLING_LAMBDA_NAME \
   --name $ALIAS_NAME \
   --function-version $ALEXA_CYCLING_LAMBDA_VERSION \
-  > /dev/null
+  > /dev/null \
+|| \
 aws lambda add-permission \
   --function-name $ALEXA_CYCLING_LAMBDA_NAME \
   --statement-id "AllowExecutionFromAlexa" \
