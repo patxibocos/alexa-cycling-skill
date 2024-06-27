@@ -23,4 +23,4 @@ aws lambda add-permission \
   --principal "alexa-appkit.amazon.com" \
   --qualifier "$ALIAS_NAME" \
   --event-source-token $ALEXA_EVENT_SOURCE_TOKEN \
-  > /dev/null
+  > /dev/null || true
