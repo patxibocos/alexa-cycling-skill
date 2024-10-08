@@ -8,7 +8,7 @@ require (
 	github.com/aws/aws-sdk-go v1.55.5
 	github.com/nicksnyder/go-i18n/v2 v2.4.0
 	github.com/stretchr/testify v1.9.0
-	golang.org/x/text v0.18.0
+	golang.org/x/text v0.19.0
 	google.golang.org/protobuf v1.34.2
 )
 
