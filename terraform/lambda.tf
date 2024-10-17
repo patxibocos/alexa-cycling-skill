@@ -37,17 +37,19 @@ resource "aws_iam_role" "alexa_cycling_role" {
       }
     }]
   })
-  inline_policy {
-    name = "s3_get_object_policy"
-    policy = jsonencode({
-      Version = "2012-10-17"
-      Statement = [{
-        Effect   = "Allow",
-        Action   = ["s3:GetObject"]
-        Resource = "arn:aws:s3:::${var.AWS_S3_BUCKET}/${var.AWS_S3_OBJECT_KEY}"
-      }]
-    })
-  }
+}
+
+resource "aws_iam_role_policy" "alexa_cycling_s3_policy" {
+  name = "s3_get_object_policy"
+  role = aws_iam_role.alexa_cycling_role.name
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow",
+      Action   = ["s3:GetObject"]
+      Resource = "arn:aws:s3:::${var.AWS_S3_BUCKET}/${var.AWS_S3_OBJECT_KEY}"
+    }]
+  })
 }
 
 resource "aws_iam_role_policy_attachment" "terraform_lambda_policy" {
