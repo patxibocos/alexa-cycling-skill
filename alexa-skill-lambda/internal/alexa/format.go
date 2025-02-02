@@ -24,7 +24,7 @@ var (
 
 	raceIDToName = map[string]string{
 		"tour-down-under":                  "El Santos Tour Down Under",
-		"great-ocean-race":                 "La Cadel Evans Great Ocean",
+		"great-ocean-road-race":            "La Cadel Evans Great Ocean",
 		"uae-tour":                         "El U A E Tour",
 		"omloop-het-nieuwsblad":            "La Omloop Het Nieuwsblad",
 		"strade-bianche":                   "La Strade Bianche",
