@@ -7,7 +7,7 @@ toolchain go1.24.2
 require (
 	github.com/BurntSushi/toml v1.5.0
 	github.com/aws/aws-lambda-go v1.48.0
-	github.com/aws/aws-sdk-go v1.55.6
+	github.com/aws/aws-sdk-go v1.55.7
 	github.com/nicksnyder/go-i18n/v2 v2.6.0
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/text v0.24.0
