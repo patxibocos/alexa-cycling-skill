@@ -9,7 +9,7 @@ require (
 	github.com/aws/aws-lambda-go v1.49.0
 	github.com/aws/aws-sdk-go v1.55.8
 	github.com/nicksnyder/go-i18n/v2 v2.6.0
-	github.com/stretchr/testify v1.11.0
+	github.com/stretchr/testify v1.11.1
 	golang.org/x/text v0.28.0
 	google.golang.org/protobuf v1.36.8
 )
