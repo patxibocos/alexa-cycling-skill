@@ -1,6 +1,6 @@
 module github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda
 
-go 1.23.0
+go 1.24.0
 
 toolchain go1.25.1
 
@@ -10,7 +10,7 @@ require (
 	github.com/aws/aws-sdk-go v1.55.8
 	github.com/nicksnyder/go-i18n/v2 v2.6.0
 	github.com/stretchr/testify v1.11.1
-	golang.org/x/text v0.28.0
+	golang.org/x/text v0.29.0
 	google.golang.org/protobuf v1.36.8
 )
 
