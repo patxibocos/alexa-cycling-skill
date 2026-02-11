@@ -2,7 +2,7 @@ module github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda
 
 go 1.24.0
 
-toolchain go1.25.6
+toolchain go1.26.0
 
 require (
 	github.com/BurntSushi/toml v1.6.0
