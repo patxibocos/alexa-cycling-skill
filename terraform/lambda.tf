@@ -11,7 +11,7 @@ data "archive_file" "alexa_cycling_lambda_code" {
 resource "aws_lambda_function" "alexa_cycling_lambda" {
   function_name    = "alexa_cycling_lambda"
   role             = aws_iam_role.alexa_cycling_role.arn
-  runtime          = "provided.al2"
+  runtime          = "provided.al2023"
   filename         = data.archive_file.alexa_cycling_lambda_code.output_path
   source_code_hash = data.archive_file.alexa_cycling_lambda_code.output_base64sha256
   handler          = "bootstrap"
