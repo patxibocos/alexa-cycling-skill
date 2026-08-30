@@ -1,12 +1,12 @@
 module github.com/patxibocos/alexa-cycling-skill/alexa-skill-lambda
 
-go 1.25.0
+go 1.26
 
 toolchain go1.27.0
 
 require (
 	github.com/BurntSushi/toml v1.6.0
-	github.com/aws/aws-lambda-go v1.54.0
+	github.com/aws/aws-lambda-go v1.55.0
 	github.com/aws/aws-sdk-go v1.55.8
 	github.com/nicksnyder/go-i18n/v2 v2.6.1
 	github.com/stretchr/testify v1.12.1
